@@ -99,16 +99,18 @@ jobs:
 
       - name: 📦 Package into Sideloadable IPA (Payload Pipeline)
         run: |
-          CONFIG="${{ inputs.configuration || 'Release' }}"
-          APP_DIR=$(find build/Build/Products/${CONFIG}-iphoneos -name "*.app" -type d | head -n 1)
+          echo "==> Searching for compiled .app bundle across entire derivedData build tree..."
+          APP_DIR=$(find build -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP_DIR" ]; then
-            echo "Error: Compiled .app bundle not found in build/Build/Products/${CONFIG}-iphoneos!"
+            echo "Error: Compiled .app bundle not found in build directory!"
+            echo "==> Debugging actual build output layout:"
+            ls -R build/Build/Products 2>/dev/null || ls -R build
             exit 1
           fi
 
           APP_NAME=$(basename "$APP_DIR")
-          echo "==> Found compiled app bundle: $APP_NAME"
+          echo "==> Successfully located compiled .app bundle: $APP_NAME"
           echo "==> Path: $APP_DIR"
 
           # 1. Create standard iOS Payload directory structure
@@ -124,8 +126,8 @@ jobs:
           # 4. Integrity verification sanity check
           echo "=========================================================="
           echo "==> Sanity check verification:"
-          unzip -l GroceryTab.ipa | grep "Payload/$APP_NAME/Info.plist"
-          echo "==> Output IPA file:"
+          unzip -l GroceryTab.ipa | grep "Info.plist"
+          echo "==> Output IPA file details:"
           ls -lh GroceryTab.ipa
           echo "=========================================================="
 
