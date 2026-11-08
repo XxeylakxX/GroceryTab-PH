@@ -1,13 +1,14 @@
 {
   "expo": {
-    "name": "Grocery",
-    "slug": "Grocery",
+    "name": "GroceryTab PH",
+    "slug": "grocerytab-ph",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "ph.grocerytab.app"
     },
     "android": {
       "adaptiveIcon": {
