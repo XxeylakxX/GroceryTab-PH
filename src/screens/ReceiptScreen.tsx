@@ -433,7 +433,7 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
               <TextInput
                 value={customName}
                 onChangeText={setCustomName}
-                placeholder="e.g. Saging Saba or Fresh Tilapia"
+                placeholder="e.g. Sayote or Ampalaya"
                 placeholderTextColor={colors.textMuted}
                 style={[
                   styles.modalInput,

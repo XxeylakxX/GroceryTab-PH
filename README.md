@@ -23,10 +23,11 @@ Instead of confusing customer checkout slips or fragile paper notebooks, Grocery
 - **Wholesale Supplier Source**: Track which bagsakan or farm supplied the goods.
 
 ### 2. 📦 Visual Inventory Catalog (Pictures & Icons First)
-- **Picture / Icon Cards**: Elderly stall owners can identify goods at a glance using large visual tiles (`🍚` Rice, `🥚` Eggs, `🧄` Garlic, `🧅` Onion, `🍅` Tomatoes, `🍗` Chicken, `🥩` Pork, `🐟` Fish, `🛢️` Cooking Oil, etc.).
+- **Picture / Icon Cards**: Elderly stall owners can identify goods at a glance using large visual tiles (`🧄` Garlic, `🧅` Red Onion, `🧅` White Onion, `🍅` Tomatoes, `🥔` Potatoes, `🥕` Carrots, `🥬` Cabbage & Pechay, `🍆` Eggplant, `🎃` Squash, `🥒` Ampalaya & Pipino, `🌶️` Native Chili, `🌿` Sitaw & Okra, etc.).
+- **Default Vegetables Catalog**: Pre-seeded specifically for Philippine palengke vegetable stalls with realistic wholesale prices in ₱.
 - **Camera & Gallery Photo Support**: Take photos of actual market goods with your camera or select from the photo library using `expo-image-picker`.
 - **View Toggle**: Switch effortlessly between a high-visibility **Visual Picture Grid** and a **Compact List**.
-- **Instant Search & Category Filters**: Filter by Rice & Grains, Vegetables & Spices, Meat & Seafood, Eggs & Dairy, Pantry & Canned, Beverages & Coffee, and Cleaning Supplies.
+- **Instant Search & Category Filters**: Filter by Root & Bulb Crops, Fruiting Vegetables, Leafy Greens, Peppers & Spices, and Pod & Legumes.
 
 ### 3. 🕒 Procurement Logs & History
 - **Offline Persistence**: Completely offline storage powered by `@react-native-async-storage/async-storage`—zero cloud logins or external dependencies.

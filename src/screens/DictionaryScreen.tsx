@@ -39,7 +39,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
 
   // Search and Category Filter
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All Items');
+  const [selectedCategory, setSelectedCategory] = useState('All Vegetables');
 
   // Add / Edit Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -47,8 +47,8 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
   const [formName, setFormName] = useState('');
   const [formPrice, setFormPrice] = useState('');
   const [formUnit, setFormUnit] = useState('kg');
-  const [formCategory, setFormCategory] = useState('Rice & Grains');
-  const [formIcon, setFormIcon] = useState('🍚');
+  const [formCategory, setFormCategory] = useState('Root & Bulb Crops');
+  const [formIcon, setFormIcon] = useState('🧄');
   const [formImageUri, setFormImageUri] = useState<string | undefined>(undefined);
   const [formSupplier, setFormSupplier] = useState('');
   const [formNotes, setFormNotes] = useState('');
@@ -75,7 +75,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
         (item.notes && item.notes.toLowerCase().includes(q));
 
       const matchesCategory =
-        selectedCategory === 'All Items' || item.category === selectedCategory;
+        selectedCategory === 'All Vegetables' || item.category === selectedCategory;
 
       return matchesSearch && matchesCategory;
     });
@@ -87,10 +87,10 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
     setFormName('');
     setFormPrice('');
     setFormUnit('kg');
-    setFormCategory('Rice & Grains');
-    setFormIcon('🍚');
+    setFormCategory('Root & Bulb Crops');
+    setFormIcon('🧄');
     setFormImageUri(undefined);
-    setFormSupplier('Bagsakan Central');
+    setFormSupplier('Divisoria Bagsakan');
     setFormNotes('');
     setIsModalOpen(true);
   };
@@ -414,7 +414,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
           <TextInput
             value={searchQuery}
             onChangeText={setSearchQuery}
-            placeholder="Search goods (e.g. Rice, Eggs, Pork)..."
+            placeholder="Search vegetables (e.g. Garlic, Onion, Tomato)..."
             placeholderTextColor={colors.textMuted}
             style={[styles.searchInput, { color: colors.text, fontSize: scaleFont(16) }]}
             accessibilityLabel="Search items"
@@ -717,7 +717,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
                 </Text>
                 <FlatList
                   horizontal
-                  data={CATEGORIES.filter(c => c !== 'All Items')}
+                  data={CATEGORIES.filter(c => c !== 'All Vegetables')}
                   keyExtractor={c => c}
                   showsHorizontalScrollIndicator={false}
                   renderItem={({ item: cat }) => {

@@ -3,7 +3,7 @@ import { CatalogItem, CartItem, ReceiptRecord, AccessibilitySettings } from '../
 import { INITIAL_CATALOG_ITEMS } from './seedData';
 
 const STORAGE_KEYS = {
-  CATALOG: '@grocerytab_catalog_v2',
+  CATALOG: '@grocerytab_catalog_v3',
   RECEIPTS: '@grocerytab_receipts_v2',
   ACTIVE_CART: '@grocerytab_active_cart_v2',
   ACCESSIBILITY: '@grocerytab_accessibility_v2'
