@@ -8,7 +8,9 @@ import {
   Alert,
   Modal,
   TextInput,
-  Pressable
+  Pressable,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../context/AppContext';
@@ -197,7 +199,7 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
           >
             <Ionicons name="business-outline" size={scaleFont(18)} color={colors.text} />
             <Text style={[styles.actionChipText, { color: colors.text, fontSize: scaleFont(14) }]}>
-              {supplierName || 'Set Supplier'}
+              {supplierName ? supplierName : '+ Supplier'}
             </Text>
           </TouchableOpacity>
 
@@ -394,108 +396,113 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
         animationType="fade"
         onRequestClose={() => setIsAddCustomOpen(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <Pressable style={styles.modalBackdrop} onPress={() => setIsAddCustomOpen(false)} />
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
-              Add Custom Procurement Item
-            </Text>
-            <Text style={[styles.modalSub, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
-              Add a quick restock item not in your inventory catalog
-            </Text>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
+                Add Custom Procurement Item
+              </Text>
+              <Text style={[styles.modalSub, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
+                Add a quick restock item not in your inventory catalog
+              </Text>
 
-            {/* Icon Picker Row */}
-            <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-              Choose Picture / Icon:
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.iconScrollRow}>
-              {PRESET_ICONS.slice(0, 16).map(icon => (
-                <TouchableOpacity
-                  key={icon}
-                  onPress={() => setCustomIcon(icon)}
+              {/* Icon Picker Row */}
+              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
+                Choose Picture / Icon:
+              </Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.iconScrollRow}>
+                {PRESET_ICONS.slice(0, 16).map(icon => (
+                  <TouchableOpacity
+                    key={icon}
+                    onPress={() => setCustomIcon(icon)}
+                    style={[
+                      styles.iconPickTile,
+                      {
+                        backgroundColor: customIcon === icon ? colors.primary : colors.card,
+                        borderColor: customIcon === icon ? colors.primary : colors.border
+                      }
+                    ]}
+                  >
+                    <Text style={{ fontSize: 24 }}>{icon}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  Item Name:
+                </Text>
+                <TextInput
+                  value={customName}
+                  onChangeText={setCustomName}
+                  placeholder="e.g. Sayote or Ampalaya"
+                  placeholderTextColor={colors.textMuted}
                   style={[
-                    styles.iconPickTile,
-                    {
-                      backgroundColor: customIcon === icon ? colors.primary : colors.card,
-                      borderColor: customIcon === icon ? colors.primary : colors.border
-                    }
+                    styles.modalInput,
+                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
                   ]}
+                  autoFocus
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  Wholesale Price in ₱:
+                </Text>
+                <TextInput
+                  value={customPrice}
+                  onChangeText={setCustomPrice}
+                  placeholder="e.g. 60.00"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="decimal-pad"
+                  style={[
+                    styles.modalInput,
+                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
+                  ]}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  Unit (kg, tray, sack, box, pc):
+                </Text>
+                <TextInput
+                  value={customUnit}
+                  onChangeText={setCustomUnit}
+                  placeholder="e.g. kg or sack"
+                  placeholderTextColor={colors.textMuted}
+                  style={[
+                    styles.modalInput,
+                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
+                  ]}
+                />
+              </View>
+
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity
+                  onPress={() => setIsAddCustomOpen(false)}
+                  style={[styles.modalActionBtn, styles.modalCancelBtn, { borderColor: colors.border }]}
                 >
-                  <Text style={{ fontSize: 24 }}>{icon}</Text>
+                  <Text style={[styles.modalCancelText, { color: colors.text, fontSize: scaleFont(16) }]}>
+                    Cancel
+                  </Text>
                 </TouchableOpacity>
-              ))}
+                <TouchableOpacity
+                  onPress={handleSaveCustomItem}
+                  style={[styles.modalActionBtn, { backgroundColor: colors.primary }]}
+                >
+                  <Text style={[styles.modalSaveText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
+                    Add to Sheet
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
-
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                Item Name:
-              </Text>
-              <TextInput
-                value={customName}
-                onChangeText={setCustomName}
-                placeholder="e.g. Sayote or Ampalaya"
-                placeholderTextColor={colors.textMuted}
-                style={[
-                  styles.modalInput,
-                  { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
-                ]}
-                autoFocus
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                Wholesale Price in ₱:
-              </Text>
-              <TextInput
-                value={customPrice}
-                onChangeText={setCustomPrice}
-                placeholder="e.g. 60.00"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="decimal-pad"
-                style={[
-                  styles.modalInput,
-                  { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
-                ]}
-              />
-            </View>
-
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                Unit (kg, tray, sack, box, pc):
-              </Text>
-              <TextInput
-                value={customUnit}
-                onChangeText={setCustomUnit}
-                placeholder="e.g. kg or sack"
-                placeholderTextColor={colors.textMuted}
-                style={[
-                  styles.modalInput,
-                  { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
-                ]}
-              />
-            </View>
-
-            <View style={styles.modalBtnRow}>
-              <TouchableOpacity
-                onPress={() => setIsAddCustomOpen(false)}
-                style={[styles.modalActionBtn, styles.modalCancelBtn, { borderColor: colors.border }]}
-              >
-                <Text style={[styles.modalCancelText, { color: colors.text, fontSize: scaleFont(16) }]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSaveCustomItem}
-                style={[styles.modalActionBtn, { backgroundColor: colors.primary }]}
-              >
-                <Text style={[styles.modalSaveText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
-                  Add to Sheet
-                </Text>
-              </TouchableOpacity>
-            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Supplier Name Modal */}
@@ -505,50 +512,55 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
         animationType="fade"
         onRequestClose={() => setIsSupplierModalOpen(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <Pressable style={styles.modalBackdrop} onPress={() => setIsSupplierModalOpen(false)} />
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
-              Set Supplier / Market Source
-            </Text>
-            <Text style={[styles.modalSub, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
-              Name of wholesale bagsakan or vendor
-            </Text>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
+                Set Supplier / Market Source
+              </Text>
+              <Text style={[styles.modalSub, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
+                Name of wholesale bagsakan or vendor
+              </Text>
 
-            <View style={styles.inputGroup}>
-              <TextInput
-                value={supplierInput}
-                onChangeText={setSupplierInput}
-                placeholder="e.g. Divisoria, Balintawak, or Suki Farm"
-                placeholderTextColor={colors.textMuted}
-                style={[
-                  styles.modalInput,
-                  { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
-                ]}
-                autoFocus
-              />
-            </View>
+              <View style={styles.inputGroup}>
+                <TextInput
+                  value={supplierInput}
+                  onChangeText={setSupplierInput}
+                  placeholder="e.g. Divisoria, Balintawak, or Suki Farm"
+                  placeholderTextColor={colors.textMuted}
+                  style={[
+                    styles.modalInput,
+                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
+                  ]}
+                  autoFocus
+                />
+              </View>
 
-            <View style={styles.modalBtnRow}>
-              <TouchableOpacity
-                onPress={() => setIsSupplierModalOpen(false)}
-                style={[styles.modalActionBtn, styles.modalCancelBtn, { borderColor: colors.border }]}
-              >
-                <Text style={[styles.modalCancelText, { color: colors.text, fontSize: scaleFont(16) }]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSaveSupplier}
-                style={[styles.modalActionBtn, { backgroundColor: colors.primary }]}
-              >
-                <Text style={[styles.modalSaveText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
-                  Save Supplier
-                </Text>
-              </TouchableOpacity>
-            </View>
+              <View style={styles.modalBtnRow}>
+                <TouchableOpacity
+                  onPress={() => setIsSupplierModalOpen(false)}
+                  style={[styles.modalActionBtn, styles.modalCancelBtn, { borderColor: colors.border }]}
+                >
+                  <Text style={[styles.modalCancelText, { color: colors.text, fontSize: scaleFont(16) }]}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleSaveSupplier}
+                  style={[styles.modalActionBtn, { backgroundColor: colors.primary }]}
+                >
+                  <Text style={[styles.modalSaveText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
+                    Save Supplier
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* Cash Paid Modal */}
@@ -558,71 +570,76 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
         animationType="fade"
         onRequestClose={() => setIsCashModalOpen(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <Pressable style={styles.modalBackdrop} onPress={() => setIsCashModalOpen(false)} />
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
-              Cash Handed to Supplier
-            </Text>
-            <Text style={[styles.modalSub, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
-              Total Procurement: {formatPHP(totalProcurement)}
-            </Text>
-
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                Cash amount in ₱:
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
+                Cash Handed to Supplier
               </Text>
-              <TextInput
-                value={cashInput}
-                onChangeText={setCashInput}
-                placeholder="e.g. 5000 or 10000"
-                placeholderTextColor={colors.textMuted}
-                keyboardType="decimal-pad"
-                style={[
-                  styles.modalInput,
-                  { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(18) }
-                ]}
-                autoFocus
-              />
-            </View>
+              <Text style={[styles.modalSub, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
+                Total Procurement: {formatPHP(totalProcurement)}
+              </Text>
 
-            <Text style={[styles.quickBillLabel, { color: colors.textMuted, fontSize: scaleFont(13) }]}>
-              Quick Philippine Banknotes:
-            </Text>
-            <View style={styles.quickBillsGrid}>
-              {[500, 1000, 2000, 5000].map(bill => (
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  Cash amount in ₱:
+                </Text>
+                <TextInput
+                  value={cashInput}
+                  onChangeText={setCashInput}
+                  placeholder="e.g. 5000 or 10000"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="decimal-pad"
+                  style={[
+                    styles.modalInput,
+                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(18) }
+                  ]}
+                  autoFocus
+                />
+              </View>
+
+              <Text style={[styles.quickBillLabel, { color: colors.textMuted, fontSize: scaleFont(13) }]}>
+                Quick Philippine Banknotes:
+              </Text>
+              <View style={styles.quickBillsGrid}>
+                {[500, 1000, 2000, 5000].map(bill => (
+                  <TouchableOpacity
+                    key={bill}
+                    onPress={() => setCashInput(bill.toString())}
+                    style={[styles.quickBillBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+                  >
+                    <Text style={[styles.quickBillBtnText, { color: colors.text, fontSize: scaleFont(14) }]}>
+                      ₱{bill.toLocaleString()}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={styles.modalBtnRow}>
                 <TouchableOpacity
-                  key={bill}
-                  onPress={() => setCashInput(bill.toString())}
-                  style={[styles.quickBillBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+                  onPress={() => setIsCashModalOpen(false)}
+                  style={[styles.modalActionBtn, styles.modalCancelBtn, { borderColor: colors.border }]}
                 >
-                  <Text style={[styles.quickBillBtnText, { color: colors.text, fontSize: scaleFont(14) }]}>
-                    ₱{bill.toLocaleString()}
+                  <Text style={[styles.modalCancelText, { color: colors.text, fontSize: scaleFont(16) }]}>
+                    Cancel
                   </Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.modalBtnRow}>
-              <TouchableOpacity
-                onPress={() => setIsCashModalOpen(false)}
-                style={[styles.modalActionBtn, styles.modalCancelBtn, { borderColor: colors.border }]}
-              >
-                <Text style={[styles.modalCancelText, { color: colors.text, fontSize: scaleFont(16) }]}>
-                  Cancel
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleSaveCash}
-                style={[styles.modalActionBtn, { backgroundColor: colors.primary }]}
-              >
-                <Text style={[styles.modalSaveText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
-                  Calculate
-                </Text>
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  onPress={handleSaveCash}
+                  style={[styles.modalActionBtn, { backgroundColor: colors.primary }]}
+                >
+                  <Text style={[styles.modalSaveText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
+                    Calculate
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -697,10 +714,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    rowGap: 4,
     paddingVertical: 6
   },
   summaryLabel: {
-    fontWeight: '600'
+    fontWeight: '600',
+    flexShrink: 1
   },
   summaryValue: {
     fontWeight: '700'
@@ -709,6 +729,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    rowGap: 6,
     paddingVertical: 4
   },
   finalTotalLabel: {
@@ -731,7 +753,9 @@ const styles = StyleSheet.create({
   cashHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center'
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    rowGap: 8
   },
   cashCardTitle: {
     fontWeight: '800',
@@ -744,7 +768,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    minHeight: 44,
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -765,6 +789,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    flexWrap: 'wrap',
+    rowGap: 6,
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderRadius: 16,
@@ -788,7 +814,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.65)',
-    padding: 20
+    padding: 16
   },
   modalBackdrop: {
     position: 'absolute',
@@ -800,9 +826,10 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 420,
+    maxHeight: '90%',
     borderRadius: 20,
     borderWidth: 2,
-    padding: 20
+    padding: 18
   },
   modalTitle: {
     fontWeight: '800'
@@ -840,11 +867,13 @@ const styles = StyleSheet.create({
   },
   modalBtnRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     marginTop: 14
   },
   modalActionBtn: {
     flex: 1,
+    minWidth: 120,
     minHeight: 52,
     borderRadius: 12,
     alignItems: 'center',
@@ -868,11 +897,13 @@ const styles = StyleSheet.create({
   },
   quickBillsGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginBottom: 14
   },
   quickBillBtn: {
     flex: 1,
+    minWidth: 70,
     minHeight: 48,
     borderRadius: 10,
     borderWidth: 2,

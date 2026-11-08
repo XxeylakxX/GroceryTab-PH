@@ -38,7 +38,9 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
     text += `====================================\n`;
     text += `Ref #: ${r.receiptNumber}\n`;
     text += `Date: ${dateStr} • ${timeStr}\n`;
-    text += `Supplier / Source: ${r.supplierName || 'Wholesale Bagsakan'}\n`;
+    if (r.supplierName && r.supplierName.trim()) {
+      text += `Supplier / Source: ${r.supplierName.trim()}\n`;
+    }
     text += `------------------------------------\n`;
     text += `ITEMS PROCURED:\n`;
 
@@ -163,9 +165,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
               </Text>
             </View>
 
-            <Text style={[styles.supplierSubtitle, { color: colors.primary, fontSize: scaleFont(13) }]}>
-              {r.supplierName || 'Wholesale Bagsakan'}
-            </Text>
+            {r.supplierName && r.supplierName.trim() ? (
+              <Text style={[styles.supplierSubtitle, { color: colors.primary, fontSize: scaleFont(13) }]}>
+                {r.supplierName.trim()}
+              </Text>
+            ) : null}
 
             <Text style={[styles.receiptNumberText, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
               #{r.receiptNumber} • {r.items.length} {r.items.length === 1 ? 'item' : 'items'}
@@ -408,11 +412,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
     padding: 16,
     minHeight: 68
   },
-  cardHeaderLeft: { flex: 1, paddingRight: 10 },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  cardHeaderLeft: { flex: 1, minWidth: 160, paddingRight: 10 },
+  dateRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
   dateText: { fontWeight: '800' },
   timeText: { fontWeight: '600' },
   supplierSubtitle: {
@@ -434,6 +440,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    rowGap: 4,
     paddingVertical: 8,
     borderBottomWidth: 1
   },
@@ -441,6 +449,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    minWidth: 140,
     gap: 8
   },
   tinyVisualBox: {
@@ -463,6 +472,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    rowGap: 4,
     paddingVertical: 4
   },
   calcLabel: {},
@@ -483,6 +494,7 @@ const styles = StyleSheet.create({
   },
   actionButtonsRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginTop: 16,
     paddingTop: 12,
@@ -491,6 +503,7 @@ const styles = StyleSheet.create({
   },
   receiptActionBtn: {
     flex: 1,
+    minWidth: 80,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

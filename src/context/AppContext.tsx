@@ -52,7 +52,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Active Procurement Sheet state
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [supplierName, setSupplierName] = useState<string>('Bagsakan Wholesaler');
+  const [supplierName, setSupplierName] = useState<string>('');
   const [cashPaid, setCashPaidState] = useState<number>(0);
 
   // Procurement Logs state
@@ -293,7 +293,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const loadReceiptToCart = (receipt: ReceiptRecord) => {
     setCartItems(receipt.items.map(item => ({ ...item })));
-    setSupplierName(receipt.supplierName || 'Bagsakan Wholesaler');
+    setSupplierName(receipt.supplierName || '');
     setCashPaidState(receipt.cashPaid || 0);
     triggerHapticFeedback('success');
   };
@@ -345,7 +345,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       totalProcurement,
       cashPaid: cashPaid > 0 ? cashPaid : undefined,
       changeReceived: cashPaid > 0 ? changeReceived : undefined,
-      supplierName: supplierName.trim() || 'Wholesale Bagsakan',
+      supplierName: supplierName.trim() || undefined,
       notes
     };
 

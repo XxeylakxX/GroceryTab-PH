@@ -14,7 +14,7 @@ export const ThermalReceiptPaper: React.FC<ThermalReceiptPaperProps> = ({
   receiptNumber = 'ACTIVE PROCUREMENT',
   timestamp = new Date().toISOString(),
   children,
-  supplierName = 'Wholesale Bagsakan'
+  supplierName
 }) => {
   const { colors, scaleFont } = useAppTheme();
   const { dateStr, timeStr } = formatDateTimePH(timestamp);
@@ -39,9 +39,11 @@ export const ThermalReceiptPaper: React.FC<ThermalReceiptPaperProps> = ({
           <Text style={[styles.storeSubtitle, { color: colors.receiptSubtext, fontSize: scaleFont(12) }]}>
             STALL RESTOCK & WHOLESALE PURCHASE SHEET
           </Text>
-          <Text style={[styles.supplierText, { color: colors.primary, fontSize: scaleFont(14) }]}>
-            Source: {supplierName}
-          </Text>
+          {supplierName ? (
+            <Text style={[styles.supplierText, { color: colors.primary, fontSize: scaleFont(14) }]}>
+              Source: {supplierName}
+            </Text>
+          ) : null}
           <Text style={[styles.metaInfo, { color: colors.receiptSubtext, fontSize: scaleFont(13) }]}>
             {dateStr} • {timeStr}
           </Text>

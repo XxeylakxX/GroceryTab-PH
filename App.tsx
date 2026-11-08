@@ -14,11 +14,13 @@ import { ReceiptScreen } from './src/screens/ReceiptScreen';
 import { DictionaryScreen } from './src/screens/DictionaryScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { AccessibilityModal } from './src/components/AccessibilityModal';
+import { HelpModal } from './src/components/HelpModal';
 
 type ActiveTab = 'receipt' | 'dictionary' | 'history';
 
 const MainAppLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('receipt');
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const { colors, theme, scaleFont, openAccessibilityModal, triggerHapticFeedback } = useAppTheme();
   const { cartItems, receipts } = useApp();
 
@@ -37,7 +39,7 @@ const MainAppLayout: React.FC = () => {
           <View style={[styles.brandIconBox, { backgroundColor: colors.primary }]}>
             <Ionicons name="cart" size={scaleFont(22)} color={colors.primaryText} />
           </View>
-          <View>
+          <View style={styles.brandTextContainer}>
             <Text style={[styles.brandTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
               GroceryTab <Text style={{ color: colors.primary }}>PH</Text>
             </Text>
@@ -47,20 +49,35 @@ const MainAppLayout: React.FC = () => {
           </View>
         </View>
 
-        {/* Persistent Display & Accessibility Button */}
-        <TouchableOpacity
-          onPress={() => {
-            triggerHapticFeedback('medium');
-            openAccessibilityModal();
-          }}
-          style={[styles.accessibilityBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
-          accessibilityRole="button"
-          accessibilityLabel="Open Display & Accessibility Settings: change font size, pictures view, and color theme"
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Ionicons name="text" size={scaleFont(18)} color={colors.text} style={{ marginRight: 4 }} />
-          <Ionicons name="eye-outline" size={scaleFont(18)} color={colors.text} />
-        </TouchableOpacity>
+        {/* Header Action Buttons: Help & Accessibility */}
+        <View style={styles.headerRightActions}>
+          <TouchableOpacity
+            onPress={() => {
+              triggerHapticFeedback('light');
+              setIsHelpOpen(true);
+            }}
+            style={[styles.headerActionBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+            accessibilityRole="button"
+            accessibilityLabel="Open User Guide and Help: learn how to use GroceryTab PH"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="help-circle-outline" size={scaleFont(22)} color={colors.text} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              triggerHapticFeedback('medium');
+              openAccessibilityModal();
+            }}
+            style={[styles.headerActionBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+            accessibilityRole="button"
+            accessibilityLabel="Open Display & Accessibility Settings: change font size, pictures view, and color theme"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="text" size={scaleFont(16)} color={colors.text} style={{ marginRight: 3 }} />
+            <Ionicons name="eye-outline" size={scaleFont(16)} color={colors.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Screen Body */}
@@ -209,6 +226,7 @@ const MainAppLayout: React.FC = () => {
       </View>
 
       <AccessibilityModal />
+      <HelpModal visible={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </SafeAreaView>
   );
 };
@@ -231,6 +249,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 2
@@ -238,6 +258,8 @@ const styles = StyleSheet.create({
   brandRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
+    minWidth: 160,
     gap: 10
   },
   brandIconBox: {
@@ -247,6 +269,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
+  brandTextContainer: {
+    flexShrink: 1
+  },
   brandTitle: {
     fontWeight: '900',
     letterSpacing: 0.5
@@ -254,11 +279,16 @@ const styles = StyleSheet.create({
   brandTagline: {
     fontWeight: '600'
   },
-  accessibilityBtn: {
+  headerRightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  headerActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     minHeight: 48,
     minWidth: 48,
     borderRadius: 12,

@@ -10,7 +10,9 @@ import {
   Alert,
   Pressable,
   Image,
-  ScrollView
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -90,7 +92,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
     setFormCategory('Root & Bulb Crops');
     setFormIcon('🧄');
     setFormImageUri(undefined);
-    setFormSupplier('Divisoria Bagsakan');
+    setFormSupplier('');
     setFormNotes('');
     setIsModalOpen(true);
   };
@@ -280,15 +282,26 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
           </View>
         </View>
 
-        {/* Action Buttons: Edit and Add to Tally */}
+        {/* Action Buttons: Edit, Delete, and Add to Tally */}
         <View style={styles.gridActionsRow}>
           <TouchableOpacity
             onPress={() => handleOpenEdit(item)}
-            style={[styles.gridEditBtn, { borderColor: colors.border, backgroundColor: colors.surfaceHighlight }]}
+            style={[styles.gridIconBtn, { borderColor: colors.border, backgroundColor: colors.surfaceHighlight }]}
+            accessibilityRole="button"
             accessibilityLabel={`Edit ${item.name}`}
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
             <Ionicons name="pencil" size={scaleFont(16)} color={colors.text} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => handleDeleteItem(item)}
+            style={[styles.gridIconBtn, { borderColor: colors.danger, backgroundColor: colors.dangerSurface }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete ${item.name} from catalog`}
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+          >
+            <Ionicons name="trash-outline" size={scaleFont(16)} color={colors.danger} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -302,7 +315,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
           >
             <Ionicons name="add" size={scaleFont(18)} color={colors.primaryText} />
             <Text style={[styles.gridAddText, { color: colors.primaryText, fontSize: scaleFont(13) }]}>
-              {qtyInCart > 0 ? `Tally (${qtyInCart})` : '+ Add'}
+              {qtyInCart > 0 ? `(${qtyInCart})` : '+ Add'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -571,10 +584,13 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
         animationType="fade"
         onRequestClose={() => setIsModalOpen(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <Pressable style={styles.modalBackdrop} onPress={() => setIsModalOpen(false)} />
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(20) }]}>
                 {editingItem ? 'Edit Item & Price' : 'Add New Inventory Item'}
               </Text>
@@ -754,7 +770,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
               {/* Supplier */}
               <View style={styles.inputGroup}>
                 <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                  Wholesale Supplier / Bagsakan:
+                  Wholesale Supplier / Bagsakan (Optional):
                 </Text>
                 <TextInput
                   value={formSupplier}
@@ -767,6 +783,24 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
                   ]}
                 />
               </View>
+
+              {/* Delete item button if editing an existing item */}
+              {editingItem && (
+                <TouchableOpacity
+                  onPress={() => {
+                    setIsModalOpen(false);
+                    handleDeleteItem(editingItem);
+                  }}
+                  style={[styles.modalDeleteBtn, { backgroundColor: colors.dangerSurface, borderColor: colors.danger }]}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Delete ${editingItem.name} from catalog`}
+                >
+                  <Ionicons name="trash-outline" size={scaleFont(18)} color={colors.danger} style={{ marginRight: 6 }} />
+                  <Text style={[styles.modalDeleteText, { color: colors.danger, fontSize: scaleFont(15) }]}>
+                    Delete Item from Inventory
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               {/* Modal Action Buttons */}
               <View style={styles.modalActions}>
@@ -789,7 +823,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
               </View>
             </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -906,7 +940,8 @@ const styles = StyleSheet.create({
   },
   gridInfoBox: {
     marginTop: 8,
-    minHeight: 52
+    minHeight: 52,
+    flexGrow: 1
   },
   gridItemName: {
     fontWeight: '800'
@@ -914,6 +949,7 @@ const styles = StyleSheet.create({
   gridPriceRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
+    flexWrap: 'wrap',
     marginTop: 4
   },
   gridPrice: {
@@ -926,13 +962,14 @@ const styles = StyleSheet.create({
   gridActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 6,
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
     borderTopColor: 'rgba(0,0,0,0.06)'
   },
-  gridEditBtn: {
+  gridIconBtn: {
     width: 38,
     height: 38,
     borderRadius: 8,
@@ -942,6 +979,7 @@ const styles = StyleSheet.create({
   },
   gridAddBtn: {
     flex: 1,
+    minWidth: 54,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -967,6 +1005,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
     marginBottom: 10
   },
   listVisualBox: {
@@ -983,16 +1023,17 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%'
   },
-  cardInfo: { flex: 1, paddingRight: 8 },
+  cardInfo: { flex: 1, minWidth: 140, paddingRight: 8 },
   itemCategoryBadge: { fontWeight: '800', letterSpacing: 0.5, marginBottom: 2 },
   itemName: { fontWeight: '800' },
   itemNotes: { marginTop: 2 },
-  priceColumn: { alignItems: 'flex-end', minWidth: 90 },
+  priceColumn: { alignItems: 'flex-end', minWidth: 80 },
   priceTag: { fontWeight: '900' },
   unitSub: { marginTop: 2, fontWeight: '600' },
   cardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexWrap: 'wrap',
     gap: 8,
     paddingTop: 8,
     borderTopWidth: 1,
@@ -1011,6 +1052,7 @@ const styles = StyleSheet.create({
   smallBtnText: { fontWeight: '700' },
   addToReceiptBtn: {
     flex: 1,
+    minWidth: 140,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -1143,9 +1185,24 @@ const styles = StyleSheet.create({
     marginRight: 6
   },
   catChoiceText: {},
-  modalActions: { flexDirection: 'row', gap: 12, marginTop: 14 },
+  modalDeleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    minHeight: 50,
+    marginTop: 8
+  },
+  modalDeleteText: {
+    fontWeight: '800'
+  },
+  modalActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 14 },
   modalActionBtn: {
     flex: 1,
+    minWidth: 120,
     minHeight: 52,
     borderRadius: 12,
     alignItems: 'center',

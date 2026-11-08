@@ -429,11 +429,13 @@ const styles = StyleSheet.create({
   },
   viewModeRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     marginBottom: 6
   },
   viewModeBtn: {
     flex: 1,
+    minWidth: 130,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
@@ -451,6 +453,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    rowGap: 8,
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 14,

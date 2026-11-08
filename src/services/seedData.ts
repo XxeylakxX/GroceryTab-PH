@@ -15,7 +15,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 130.00,
     unit: 'kg',
     icon: '🧄',
-    supplier: 'Divisoria Bagsakan',
+    supplier: '',
     notes: 'Whole native garlic heads',
     updatedAt: new Date().toISOString()
   },
@@ -26,7 +26,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 120.00,
     unit: 'kg',
     icon: '🧅',
-    supplier: 'Divisoria Bagsakan',
+    supplier: '',
     notes: 'Medium fresh local red onions',
     updatedAt: new Date().toISOString()
   },
@@ -37,7 +37,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 140.00,
     unit: 'kg',
     icon: '🧅',
-    supplier: 'Divisoria Bagsakan',
+    supplier: '',
     notes: 'Sweet yellow/white onions',
     updatedAt: new Date().toISOString()
   },
@@ -48,7 +48,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 85.00,
     unit: 'kg',
     icon: '🥔',
-    supplier: 'Balintawak Bagsakan',
+    supplier: '',
     notes: 'Benguet medium table potatoes',
     updatedAt: new Date().toISOString()
   },
@@ -59,7 +59,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 90.00,
     unit: 'kg',
     icon: '🥕',
-    supplier: 'Balintawak Bagsakan',
+    supplier: '',
     notes: 'Fresh washed Benguet carrots',
     updatedAt: new Date().toISOString()
   },
@@ -70,7 +70,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 110.00,
     unit: 'kg',
     icon: '🥔',
-    supplier: 'Balintawak Bagsakan',
+    supplier: '',
     notes: 'Native fresh yellow ginger root',
     updatedAt: new Date().toISOString()
   },
@@ -83,7 +83,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 70.00,
     unit: 'kg',
     icon: '🍅',
-    supplier: 'Balintawak Bagsakan',
+    supplier: '',
     notes: 'Plump ripe red salad tomatoes',
     updatedAt: new Date().toISOString()
   },
@@ -94,7 +94,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 65.00,
     unit: 'kg',
     icon: '🍆',
-    supplier: 'Pangasinan Farm Dealer',
+    supplier: '',
     notes: 'Long purple native eggplant',
     updatedAt: new Date().toISOString()
   },
@@ -105,7 +105,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 45.00,
     unit: 'kg',
     icon: '🎃',
-    supplier: 'Nueva Ecija Trucker',
+    supplier: '',
     notes: 'Sweet creamy native squash',
     updatedAt: new Date().toISOString()
   },
@@ -116,7 +116,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 40.00,
     unit: 'kg',
     icon: '🍐',
-    supplier: 'Benguet Wholesale',
+    supplier: '',
     notes: 'Firm fresh green sayote',
     updatedAt: new Date().toISOString()
   },
@@ -127,7 +127,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 95.00,
     unit: 'kg',
     icon: '🥒',
-    supplier: 'Central Luzon Bagsakan',
+    supplier: '',
     notes: 'Crisp green bitter melon',
     updatedAt: new Date().toISOString()
   },
@@ -138,7 +138,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 50.00,
     unit: 'kg',
     icon: '🥒',
-    supplier: 'Central Luzon Bagsakan',
+    supplier: '',
     notes: 'Crunchy green salad cucumber',
     updatedAt: new Date().toISOString()
   },
@@ -151,7 +151,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 75.00,
     unit: 'kg',
     icon: '🥬',
-    supplier: 'La Trinidad Coop',
+    supplier: '',
     notes: 'Tight round green cabbage head',
     updatedAt: new Date().toISOString()
   },
@@ -162,7 +162,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 65.00,
     unit: 'kg',
     icon: '🥬',
-    supplier: 'La Trinidad Coop',
+    supplier: '',
     notes: 'Chinese cabbage for chopsuey/soup',
     updatedAt: new Date().toISOString()
   },
@@ -173,7 +173,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 50.00,
     unit: 'bundle',
     icon: '🥬',
-    supplier: 'Laguna Farm Truck',
+    supplier: '',
     notes: 'Fresh leafy native bok choy bundle',
     updatedAt: new Date().toISOString()
   },
@@ -186,7 +186,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 220.00,
     unit: 'kg',
     icon: '🌶️',
-    supplier: 'Batangas Spice Trader',
+    supplier: '',
     notes: 'Fiery native small red hot peppers',
     updatedAt: new Date().toISOString()
   },
@@ -197,7 +197,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 110.00,
     unit: 'kg',
     icon: '🌶️',
-    supplier: 'Batangas Spice Trader',
+    supplier: '',
     notes: 'Long green chili for sinigang',
     updatedAt: new Date().toISOString()
   },
@@ -210,7 +210,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 60.00,
     unit: 'bundle',
     icon: '🌿',
-    supplier: 'Quezon Farm Dealer',
+    supplier: '',
     notes: 'Tender yardlong green beans bundle',
     updatedAt: new Date().toISOString()
   },
@@ -221,7 +221,7 @@ export const INITIAL_CATALOG_ITEMS: CatalogItem[] = [
     unitPrice: 45.00,
     unit: 'bundle (500g)',
     icon: '🌿',
-    supplier: 'Laguna Farm Truck',
+    supplier: '',
     notes: 'Young tender lady finger pods',
     updatedAt: new Date().toISOString()
   }

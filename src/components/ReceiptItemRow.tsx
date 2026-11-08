@@ -7,7 +7,10 @@ import {
   Modal,
   TextInput,
   Pressable,
-  Image
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartItem } from '../types';
@@ -56,11 +59,15 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
     triggerHapticFeedback('success');
   };
 
+  const handleRemoveFromModal = () => {
+    setIsEditModalOpen(false);
+    onRemove();
+  };
+
   return (
     <View style={[styles.container, { borderBottomColor: colors.receiptBorder }]}>
-      {/* Top line: Icon/Picture + Item Name and Subtotal */}
+      {/* Top line: Icon/Picture + Item Name and Subtotal (wraps cleanly on Extra Large) */}
       <View style={styles.topRow}>
-        {/* Visual Picture / Emoji Icon */}
         <View style={[styles.visualBox, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}>
           {item.imageUri ? (
             <Image source={{ uri: item.imageUri }} style={styles.itemImage} resizeMode="cover" />
@@ -73,13 +80,12 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
 
         <View style={styles.nameContainer}>
           <Text
-            style={[styles.itemName, { color: colors.receiptText, fontSize: scaleFont(17) }]}
-            numberOfLines={2}
+            style={[styles.itemName, { color: colors.receiptText, fontSize: scaleFont(16) }]}
           >
             {item.name}
           </Text>
-          <Text style={[styles.unitSub, { color: colors.receiptSubtext, fontSize: scaleFont(13) }]}>
-            Unit: {item.unit || 'pc'}
+          <Text style={[styles.unitSub, { color: colors.receiptSubtext, fontSize: scaleFont(12) }]}>
+            Unit: {item.unit || 'kg'}
           </Text>
         </View>
 
@@ -87,7 +93,7 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
           <Text style={[styles.subtotalLabel, { color: colors.receiptSubtext, fontSize: scaleFont(11) }]}>
             SUBTOTAL
           </Text>
-          <Text style={[styles.subtotalValue, { color: colors.receiptText, fontSize: scaleFont(18) }]}>
+          <Text style={[styles.subtotalValue, { color: colors.receiptText, fontSize: scaleFont(17) }]}>
             {formatPHP(item.subtotal)}
           </Text>
         </View>
@@ -95,17 +101,17 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
 
       {/* Control row: Unit Price (Tappable), Stepper [- QTY +], and Remove button */}
       <View style={styles.controlRow}>
-        {/* Unit Price badge (Tapping allows updating wholesale price, remembering it for next time) */}
+        {/* Unit Price badge */}
         <TouchableOpacity
           onPress={handleOpenEdit}
           style={[styles.unitPriceBadge, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
           accessibilityLabel={`Price per unit: ${formatPHP(item.unitPrice)}. Tap to edit.`}
           accessibilityRole="button"
         >
-          <Text style={[styles.unitPriceText, { color: colors.text, fontSize: scaleFont(14) }]}>
+          <Text style={[styles.unitPriceText, { color: colors.text, fontSize: scaleFont(13) }]}>
             @{formatPHP(item.unitPrice)}
           </Text>
-          <Ionicons name="pencil-sharp" size={14} color={colors.textMuted} style={{ marginLeft: 4 }} />
+          <Ionicons name="pencil-sharp" size={12} color={colors.textMuted} style={{ marginLeft: 3 }} />
         </TouchableOpacity>
 
         {/* Stepper with minimum 48x48dp touch targets */}
@@ -117,7 +123,7 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="remove" size={scaleFont(22)} color={colors.text} />
+            <Ionicons name="remove" size={scaleFont(20)} color={colors.text} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -126,7 +132,7 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
             accessibilityLabel={`Current quantity: ${item.quantity}. Tap to type number.`}
             accessibilityRole="button"
           >
-            <Text style={[styles.qtyText, { color: colors.text, fontSize: scaleFont(17) }]}>
+            <Text style={[styles.qtyText, { color: colors.text, fontSize: scaleFont(16) }]}>
               {item.quantity}
             </Text>
           </TouchableOpacity>
@@ -138,7 +144,7 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="add" size={scaleFont(22)} color={colors.text} />
+            <Ionicons name="add" size={scaleFont(20)} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -154,96 +160,118 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Direct Edit Modal */}
+      {/* Direct Edit Modal with KeyboardAvoidingView */}
       <Modal
         visible={isEditModalOpen}
         transparent={true}
         animationType="fade"
         onRequestClose={() => setIsEditModalOpen(false)}
       >
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.modalOverlay}
+        >
           <Pressable style={styles.modalBackdrop} onPress={() => setIsEditModalOpen(false)} />
           <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
-              Edit Quantity & Wholesale Price
-            </Text>
-            <Text style={[styles.modalItemName, { color: colors.textSecondary, fontSize: scaleFont(15) }]}>
-              {item.icon} {item.name}
-            </Text>
-
-            {/* Quantity Input */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                Quantity to Buy ({item.unit || 'pcs'}):
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingBottom: 10 }}
+            >
+              <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
+                Edit Quantity & Price
               </Text>
-              <TextInput
-                value={editQty}
-                onChangeText={setEditQty}
-                keyboardType="numeric"
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: colors.card,
-                    color: colors.text,
-                    borderColor: colors.border,
-                    fontSize: scaleFont(18)
-                  }
-                ]}
-                placeholder="e.g. 5"
-                placeholderTextColor={colors.textMuted}
-                selectTextOnFocus
-              />
-            </View>
-
-            {/* Price Input (Remembers for next time) */}
-            <View style={styles.inputGroup}>
-              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                Wholesale Price in ₱ (per {item.unit || 'unit'}):
+              <Text style={[styles.modalItemName, { color: colors.textSecondary, fontSize: scaleFont(15) }]}>
+                {item.icon} {item.name}
               </Text>
-              <TextInput
-                value={editPrice}
-                onChangeText={setEditPrice}
-                keyboardType="decimal-pad"
-                style={[
-                  styles.textInput,
-                  {
-                    backgroundColor: colors.card,
-                    color: colors.text,
-                    borderColor: colors.border,
-                    fontSize: scaleFont(18)
-                  }
-                ]}
-                placeholder="e.g. 52.00"
-                placeholderTextColor={colors.textMuted}
-                selectTextOnFocus
-              />
-              <Text style={[styles.priceMemoryNote, { color: colors.accent, fontSize: scaleFont(12) }]}>
-                ✓ This new price will automatically be remembered for future procurement.
-              </Text>
-            </View>
 
-            {/* Modal Buttons */}
-            <View style={styles.modalActions}>
+              {/* Quantity Input */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  Quantity to Buy ({item.unit || 'kg'}):
+                </Text>
+                <TextInput
+                  value={editQty}
+                  onChangeText={setEditQty}
+                  keyboardType="numeric"
+                  style={[
+                    styles.textInput,
+                    {
+                      backgroundColor: colors.card,
+                      color: colors.text,
+                      borderColor: colors.border,
+                      fontSize: scaleFont(18)
+                    }
+                  ]}
+                  placeholder="e.g. 5"
+                  placeholderTextColor={colors.textMuted}
+                  selectTextOnFocus
+                />
+              </View>
+
+              {/* Price Input (Remembers for next time) */}
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  Wholesale Price in ₱ (per {item.unit || 'unit'}):
+                </Text>
+                <TextInput
+                  value={editPrice}
+                  onChangeText={setEditPrice}
+                  keyboardType="decimal-pad"
+                  style={[
+                    styles.textInput,
+                    {
+                      backgroundColor: colors.card,
+                      color: colors.text,
+                      borderColor: colors.border,
+                      fontSize: scaleFont(18)
+                    }
+                  ]}
+                  placeholder="e.g. 52.00"
+                  placeholderTextColor={colors.textMuted}
+                  selectTextOnFocus
+                />
+                <Text style={[styles.priceMemoryNote, { color: colors.accent, fontSize: scaleFont(12) }]}>
+                  ✓ Remembers this price for future restocks.
+                </Text>
+              </View>
+
+              {/* Remove button inside modal */}
               <TouchableOpacity
-                onPress={() => setIsEditModalOpen(false)}
-                style={[styles.modalBtn, styles.cancelBtn, { borderColor: colors.border }]}
+                onPress={handleRemoveFromModal}
+                style={[styles.modalRemoveBtn, { backgroundColor: colors.dangerSurface, borderColor: colors.danger }]}
+                accessibilityRole="button"
+                accessibilityLabel="Remove this item from sheet"
               >
-                <Text style={[styles.cancelBtnText, { color: colors.text, fontSize: scaleFont(16) }]}>
-                  Cancel
+                <Ionicons name="trash-outline" size={scaleFont(16)} color={colors.danger} style={{ marginRight: 6 }} />
+                <Text style={[styles.modalRemoveBtnText, { color: colors.danger, fontSize: scaleFont(14) }]}>
+                  Remove from Sheet
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={handleSaveEdit}
-                style={[styles.modalBtn, styles.saveBtn, { backgroundColor: colors.primary }]}
-              >
-                <Text style={[styles.saveBtnText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
-                  Save & Update
-                </Text>
-              </TouchableOpacity>
-            </View>
+              {/* Modal Buttons */}
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  onPress={() => setIsEditModalOpen(false)}
+                  style={[styles.modalBtn, styles.cancelBtn, { borderColor: colors.border }]}
+                >
+                  <Text style={[styles.cancelBtnText, { color: colors.text, fontSize: scaleFont(15) }]}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleSaveEdit}
+                  style={[styles.modalBtn, styles.saveBtn, { backgroundColor: colors.primary }]}
+                >
+                  <Text style={[styles.saveBtnText, { color: colors.primaryText, fontSize: scaleFont(15) }]}>
+                    Save & Update
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -251,8 +279,8 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    paddingVertical: 14,
-    paddingHorizontal: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
     borderBottomWidth: 1,
     borderStyle: 'dashed'
   },
@@ -260,7 +288,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10
+    flexWrap: 'wrap',
+    rowGap: 4,
+    marginBottom: 8
   },
   visualBox: {
     width: 44,
@@ -269,7 +299,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    marginRight: 8,
     overflow: 'hidden'
   },
   itemImage: {
@@ -279,7 +309,8 @@ const styles = StyleSheet.create({
   itemEmoji: {},
   nameContainer: {
     flex: 1,
-    paddingRight: 8
+    minWidth: 120,
+    paddingRight: 6
   },
   itemName: {
     fontWeight: '700'
@@ -289,7 +320,7 @@ const styles = StyleSheet.create({
   },
   subtotalContainer: {
     alignItems: 'flex-end',
-    minWidth: 95
+    minWidth: 85
   },
   subtotalLabel: {
     fontWeight: '700',
@@ -302,16 +333,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8
+    flexWrap: 'wrap',
+    rowGap: 8,
+    columnGap: 6
   },
   unitPriceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 8,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1.5,
-    minHeight: 48
+    minHeight: 46
   },
   unitPriceText: {
     fontWeight: '700'
@@ -324,24 +357,24 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   stepperButton: {
-    width: 48,
-    height: 48,
+    width: 46,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center'
   },
   qtyDisplay: {
-    minWidth: 44,
-    height: 48,
+    minWidth: 40,
+    height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 6
+    paddingHorizontal: 4
   },
   qtyText: {
     fontWeight: '800'
   },
   removeButton: {
-    width: 48,
-    height: 48,
+    width: 46,
+    height: 46,
     borderRadius: 10,
     borderWidth: 1.5,
     alignItems: 'center',
@@ -352,7 +385,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.65)',
-    padding: 20
+    padding: 16
   },
   modalBackdrop: {
     position: 'absolute',
@@ -364,9 +397,10 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 420,
+    maxHeight: '85%',
     borderRadius: 20,
     borderWidth: 2,
-    padding: 22,
+    padding: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
@@ -378,38 +412,53 @@ const styles = StyleSheet.create({
     marginBottom: 4
   },
   modalItemName: {
-    marginBottom: 16,
+    marginBottom: 14,
     fontWeight: '700'
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 14
   },
   inputLabel: {
     fontWeight: '700',
     marginBottom: 6
   },
   textInput: {
-    minHeight: 52,
+    minHeight: 50,
     borderWidth: 2,
     borderRadius: 10,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     fontWeight: '700'
   },
   priceMemoryNote: {
-    marginTop: 6,
+    marginTop: 4,
     fontWeight: '600'
+  },
+  modalRemoveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    marginBottom: 14,
+    minHeight: 46
+  },
+  modalRemoveBtnText: {
+    fontWeight: '800'
   },
   modalActions: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 10
+    gap: 10,
+    marginTop: 4
   },
   modalBtn: {
     flex: 1,
-    minHeight: 50,
+    minHeight: 48,
     borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    paddingHorizontal: 8
   },
   cancelBtn: {
     borderWidth: 2
