@@ -26,7 +26,7 @@ concurrency:
 jobs:
   build-unsigned-ipa:
     name: Build & Package Unsigned IPA
-    runs-on: macos-latest
+    runs-on: macos-14
     timeout-minutes: 45
 
     steps:
@@ -44,7 +44,7 @@ jobs:
 
       - name: 🛠️ Select Xcode Version
         run: |
-          echo "Selected Xcode:"
+          echo "Selected Xcode Version:"
           xcodebuild -version
 
       - name: 🚀 Expo Prebuild (Generate Native iOS Project)
@@ -55,23 +55,36 @@ jobs:
         run: |
           pod install --project-directory=ios
 
+      - name: 🔍 Validate CocoaPods Workspace & Dependencies
+        run: |
+          if [ ! -d "ios/Pods" ]; then
+            echo "Error: ios/Pods directory not found! CocoaPods installation failed or was bypassed."
+            exit 1
+          fi
+
+          WORKSPACE=$(find ios -maxdepth 1 -name "*.xcworkspace" | head -n 1)
+          if [ -z "$WORKSPACE" ]; then
+            echo "Error: Top-level CocoaPods .xcworkspace not found in ios directory!"
+            exit 1
+          fi
+
+          echo "==> Verified CocoaPods Workspace: $WORKSPACE"
+          echo "==> Verified Pods directory: ios/Pods"
+
       - name: 🏗️ Compile Unsigned iOS Binary (xcodebuild)
         run: |
           CONFIG="${{ inputs.configuration || 'Release' }}"
           echo "==> Build Configuration: $CONFIG"
 
-          WORKSPACE=$(find ios -name "*.xcworkspace" | head -n 1)
-          if [ -z "$WORKSPACE" ]; then
-            echo "Error: .xcworkspace not found in ios directory"
-            exit 1
-          fi
+          # Target top-level CocoaPods workspace only (never internal .xcodeproj/project.xcworkspace)
+          WORKSPACE=$(find ios -maxdepth 1 -name "*.xcworkspace" | head -n 1)
+          echo "==> Top-level Workspace: $WORKSPACE"
 
-          # Dynamically detect primary scheme
-          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list | awk '/Schemes:/{flag=1; next} flag && NF {print $1; exit}')
-          echo "==> Detected Workspace: $WORKSPACE"
-          echo "==> Detected Scheme: $SCHEME"
+          # Extract primary app scheme using jq
+          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list -json | jq -r '.workspace.schemes[0]')
+          echo "==> Target Scheme: $SCHEME"
 
-          # Compile targeting real physical devices (arm64) with strict code-signing bypass
+          # Compile targeting physical iOS devices (arm64) with full CocoaPods linkage and code-signing bypass
           xcodebuild build \
             -workspace "$WORKSPACE" \
             -scheme "$SCHEME" \
@@ -81,6 +94,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
+            ENABLE_USER_SCRIPT_SANDBOXING=NO \
             COMPILER_INDEX_STORE_ENABLE=NO
 
       - name: 📦 Package into Sideloadable IPA (Payload Pipeline)
@@ -89,7 +103,7 @@ jobs:
           APP_DIR=$(find build/Build/Products/${CONFIG}-iphoneos -name "*.app" -type d | head -n 1)
           
           if [ -z "$APP_DIR" ]; then
-            echo "Error: Compiled .app bundle not found in build products!"
+            echo "Error: Compiled .app bundle not found in build/Build/Products/${CONFIG}-iphoneos!"
             exit 1
           fi
 
@@ -103,7 +117,7 @@ jobs:
           # 2. Copy the compiled .app bundle into Payload/
           cp -R "$APP_DIR" Payload/
 
-          # 3. Compress Payload into .ipa archive
+          # 3. Compress Payload into GroceryTab.ipa
           zip -qry GroceryTab.ipa Payload
           rm -rf Payload
 
