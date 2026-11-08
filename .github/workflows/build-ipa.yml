@@ -1,0 +1,124 @@
+name: Build Unsigned iOS IPA
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - 'LICENSE'
+  workflow_dispatch:
+    inputs:
+      configuration:
+        description: 'Xcode Build Configuration'
+        required: true
+        default: 'Release'
+        type: choice
+        options:
+          - Release
+          - Debug
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-unsigned-ipa:
+    name: Build & Package Unsigned IPA
+    runs-on: macos-14
+    timeout-minutes: 45
+
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js (v20)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Install NPM Dependencies
+        run: npm ci
+
+      - name: 🛠️ Select Xcode Version
+        run: |
+          echo "Selected Xcode:"
+          xcodebuild -version
+
+      - name: 🚀 Expo Prebuild (Generate Native iOS Project)
+        run: |
+          npx expo prebuild --platform ios --clean
+
+      - name: ☕ Install CocoaPods Dependencies
+        run: |
+          pod install --project-directory=ios
+
+      - name: 🏗️ Compile Unsigned iOS Binary (xcodebuild)
+        run: |
+          CONFIG="${{ inputs.configuration || 'Release' }}"
+          echo "==> Build Configuration: $CONFIG"
+
+          WORKSPACE=$(find ios -name "*.xcworkspace" | head -n 1)
+          if [ -z "$WORKSPACE" ]; then
+            echo "Error: .xcworkspace not found in ios directory"
+            exit 1
+          fi
+
+          # Dynamically detect primary scheme
+          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list | awk '/Schemes:/{flag=1; next} flag && NF {print $1; exit}')
+          echo "==> Detected Workspace: $WORKSPACE"
+          echo "==> Detected Scheme: $SCHEME"
+
+          # Compile targeting real physical devices (arm64) with strict code-signing bypass
+          xcodebuild build \
+            -workspace "$WORKSPACE" \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIG" \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            COMPILER_INDEX_STORE_ENABLE=NO
+
+      - name: 📦 Package into Sideloadable IPA (Payload Pipeline)
+        run: |
+          CONFIG="${{ inputs.configuration || 'Release' }}"
+          APP_DIR=$(find build/Build/Products/${CONFIG}-iphoneos -name "*.app" -type d | head -n 1)
+          
+          if [ -z "$APP_DIR" ]; then
+            echo "Error: Compiled .app bundle not found in build products!"
+            exit 1
+          fi
+
+          APP_NAME=$(basename "$APP_DIR")
+          echo "==> Found compiled app bundle: $APP_NAME"
+          echo "==> Path: $APP_DIR"
+
+          # 1. Create standard iOS Payload directory structure
+          mkdir -p Payload
+
+          # 2. Copy the compiled .app bundle into Payload/
+          cp -R "$APP_DIR" Payload/
+
+          # 3. Compress Payload into .ipa archive
+          zip -qry GroceryTab.ipa Payload
+          rm -rf Payload
+
+          # 4. Integrity verification sanity check
+          echo "=========================================================="
+          echo "==> Sanity check verification:"
+          unzip -l GroceryTab.ipa | grep "Payload/$APP_NAME/Info.plist"
+          echo "==> Output IPA file:"
+          ls -lh GroceryTab.ipa
+          echo "=========================================================="
+
+      - name: 📤 Upload Sideloadable IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: GroceryTab-iOS-Unsigned-IPA
+          path: GroceryTab.ipa
+          if-no-files-found: error
+          retention-days: 14

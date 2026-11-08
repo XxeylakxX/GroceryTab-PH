@@ -93,7 +93,23 @@ GroceryTab-PH/
 
 ---
 
-## 🚀 Getting Started
+## 🤖 Automated CI/CD (.IPA Build via GitHub Actions)
+
+An automated GitHub Actions workflow is included at [`.github/workflows/build-ipa.yml`](.github/workflows/build-ipa.yml). It builds an unsigned `arm64` iOS `.ipa` directly on GitHub's hosted Apple Silicon macOS runners (`macos-14`) without requiring an Apple Developer Account.
+
+### How to Trigger the Build on GitHub:
+1. Go to your repository on GitHub: **`https://github.com/XxeylakxX/GroceryTab-PH`**.
+2. Click the **Actions** tab at the top.
+3. In the left sidebar, click **Build Unsigned iOS IPA**.
+4. Click **Run workflow** (select `main` branch and `Release` configuration).
+5. Once the run finishes (~5–8 minutes):
+   - Scroll down to the **Artifacts** section at the bottom of the run summary.
+   - Click **`GroceryTab-iOS-Unsigned-IPA`** to download your ready-to-sideload `GroceryTab.ipa`.
+6. Open **Sideloadly**, drag `GroceryTab.ipa` in, enter your free Apple ID, and install directly to your iPhone!
+
+---
+
+## 🚀 Getting Started Locally
 
 ### Prerequisites
 - [Node.js](https://nodejs.org/) (v18 or higher recommended)

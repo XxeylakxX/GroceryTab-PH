@@ -8,12 +8,13 @@
       "distribution": "internal",
       "ios": {
         "simulator": false,
-        "buildConfiguration": "Release"
+        "buildConfiguration": "Release",
+        "enterpriseProvisioning": "adhoc"
       },
       "env": {
         "CODE_SIGNING_ALLOWED": "NO",
         "CODE_SIGNING_REQUIRED": "NO",
-        "CODE_SIGN_IDENTITY": ""
+        "CODE_SIGN_IDENTITY": "-"
       },
       "channel": "production",
       "autoIncrement": false

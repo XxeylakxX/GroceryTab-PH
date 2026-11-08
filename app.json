@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "GroceryTab PH",
-    "slug": "grocerytab-ph",
+    "slug": "grocery",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -21,6 +21,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "5a634133-c590-488e-a6ac-bc44f47997cc"
+      }
+    },
+    "owner": "xxeylakxx"
   }
 }
