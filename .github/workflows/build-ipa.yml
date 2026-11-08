@@ -71,26 +71,32 @@ jobs:
           echo "==> Verified CocoaPods Workspace: $WORKSPACE"
           echo "==> Verified Pods directory: ios/Pods"
 
-      - name: 🏗️ Compile Unsigned iOS Binary (xcodebuild)
+      - name: 🏗️ Compile & Archive Unsigned iOS App (xcodebuild)
         run: |
           CONFIG="${{ inputs.configuration || 'Release' }}"
           echo "==> Build Configuration: $CONFIG"
 
-          # Target top-level CocoaPods workspace only (never internal .xcodeproj/project.xcworkspace)
+          # 1. Target top-level CocoaPods workspace
           WORKSPACE=$(find ios -maxdepth 1 -name "*.xcworkspace" | head -n 1)
-          echo "==> Top-level Workspace: $WORKSPACE"
+          if [ -z "$WORKSPACE" ]; then
+            echo "Error: Top-level CocoaPods .xcworkspace not found in ios directory!"
+            exit 1
+          fi
+          echo "==> CocoaPods Workspace: $WORKSPACE"
 
-          # Extract primary app scheme using jq
-          SCHEME=$(xcodebuild -workspace "$WORKSPACE" -list -json | jq -r '.workspace.schemes[0]')
-          echo "==> Target Scheme: $SCHEME"
+          # 2. Extract primary app target scheme directly from .xcodeproj (avoids dependency Pod schemes)
+          XCODEPROJ=$(find ios -maxdepth 1 -name "*.xcodeproj" | head -n 1)
+          APP_SCHEME=$(basename "$XCODEPROJ" .xcodeproj)
+          echo "==> Target Xcode Project: $XCODEPROJ"
+          echo "==> Primary Application Scheme: $APP_SCHEME"
 
-          # Compile targeting physical iOS devices (arm64) with full CocoaPods linkage and code-signing bypass
-          xcodebuild build \
+          # 3. Compile & Archive targeting physical devices (arm64) with full CocoaPods linkage and signing bypass
+          xcodebuild archive \
             -workspace "$WORKSPACE" \
-            -scheme "$SCHEME" \
+            -scheme "$APP_SCHEME" \
             -configuration "$CONFIG" \
             -destination 'generic/platform=iOS' \
-            -derivedDataPath build \
+            -archivePath build/GroceryTab.xcarchive \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
@@ -99,18 +105,20 @@ jobs:
 
       - name: 📦 Package into Sideloadable IPA (Payload Pipeline)
         run: |
-          echo "==> Searching for compiled .app bundle across entire derivedData build tree..."
-          APP_DIR=$(find build -name "*.app" -type d | head -n 1)
+          ARCHIVE_APP_DIR=$(find build/GroceryTab.xcarchive/Products/Applications -name "*.app" -type d 2>/dev/null | head -n 1)
+
+          # Fallback to recursive search inside build if not in default archive directory
+          APP_DIR="${ARCHIVE_APP_DIR:-$(find build -name "*.app" -type d | head -n 1)}"
           
           if [ -z "$APP_DIR" ]; then
-            echo "Error: Compiled .app bundle not found in build directory!"
-            echo "==> Debugging actual build output layout:"
-            ls -R build/Build/Products 2>/dev/null || ls -R build
+            echo "Error: Compiled .app bundle not found in archive or build directory!"
+            echo "==> Debugging actual build directory structure:"
+            ls -R build 2>/dev/null
             exit 1
           fi
 
           APP_NAME=$(basename "$APP_DIR")
-          echo "==> Successfully located compiled .app bundle: $APP_NAME"
+          echo "==> Found compiled app bundle: $APP_NAME"
           echo "==> Path: $APP_DIR"
 
           # 1. Create standard iOS Payload directory structure
@@ -126,7 +134,7 @@ jobs:
           # 4. Integrity verification sanity check
           echo "=========================================================="
           echo "==> Sanity check verification:"
-          unzip -l GroceryTab.ipa | grep "Info.plist"
+          unzip -l GroceryTab.ipa | grep "Payload/$APP_NAME/Info.plist"
           echo "==> Output IPA file details:"
           ls -lh GroceryTab.ipa
           echo "=========================================================="
