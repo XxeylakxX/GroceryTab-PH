@@ -10,8 +10,8 @@ import {
   Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import { useAppTheme } from '../context/ThemeContext';
+import { BUILD_INFO } from '../constants/buildInfo';
 
 interface AboutModalProps {
   visible: boolean;
@@ -25,13 +25,6 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
     triggerHapticFeedback('light');
     onClose();
   };
-
-  const appVersion = Constants.expoConfig?.version || '1.0.0';
-  const buildNumber =
-    Constants.expoConfig?.ios?.buildNumber ||
-    Constants.expoConfig?.android?.versionCode?.toString() ||
-    Constants.nativeBuildVersion ||
-    '1';
 
   return (
     <Modal
@@ -92,18 +85,18 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
                 Palengke Wholesale Restock & Capital Ledger
               </Text>
 
-              {/* Version & Build Pill */}
+              {/* Version & Commit Pill */}
               <View style={[styles.versionPill, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                <Ionicons name="information-circle" size={scaleFont(14)} color={colors.primary} style={{ marginRight: 4 }} />
+                <Ionicons name="git-commit-outline" size={scaleFont(15)} color={colors.primary} style={{ marginRight: 5 }} />
                 <Text style={[styles.versionPillText, { color: colors.primary, fontSize: scaleFont(13) }]}>
-                  Version {appVersion} (Build {buildNumber})
+                  v{BUILD_INFO.version} • Commit #{BUILD_INFO.commitCount} ({BUILD_INFO.commitHash})
                 </Text>
               </View>
             </View>
 
             {/* Build Specifications: iOS Inset Grouped Table */}
             <Text style={[styles.sectionTitle, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
-              APPLICATION BUILD INFO
+              APPLICATION & COMMIT INFO
             </Text>
             <View style={[styles.insetGroupedCard, { backgroundColor: colors.card, borderColor: colors.borderSubtle }]}>
               <View style={[styles.infoRow, { borderBottomColor: colors.borderSubtle }]}>
@@ -111,19 +104,39 @@ export const AboutModal: React.FC<AboutModalProps> = ({ visible, onClose }) => {
                   Version
                 </Text>
                 <Text style={[styles.infoValue, { color: colors.text, fontSize: scaleFont(14) }]}>
-                  {appVersion}
+                  v{BUILD_INFO.version}
                 </Text>
               </View>
 
               <View style={[styles.infoRow, { borderBottomColor: colors.borderSubtle }]}>
                 <Text style={[styles.infoLabel, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
-                  Build Number
+                  Commit Number
                 </Text>
-                <View style={[styles.buildBadge, { backgroundColor: colors.surfaceHighlight }]}>
+                <View style={[styles.buildBadge, { backgroundColor: colors.primaryLight }]}>
                   <Text style={[styles.buildBadgeText, { color: colors.primary, fontSize: scaleFont(13) }]}>
-                    Build #{buildNumber}
+                    Commit #{BUILD_INFO.commitCount}
                   </Text>
                 </View>
+              </View>
+
+              <View style={[styles.infoRow, { borderBottomColor: colors.borderSubtle }]}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
+                  Git Commit Hash
+                </Text>
+                <View style={[styles.hashBadge, { backgroundColor: colors.surfaceHighlight }]}>
+                  <Text style={[styles.infoValueCode, { color: colors.text, fontSize: scaleFont(13) }]}>
+                    {BUILD_INFO.commitHash}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={[styles.infoRow, { borderBottomColor: colors.borderSubtle }]}>
+                <Text style={[styles.infoLabel, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
+                  Commit Date
+                </Text>
+                <Text style={[styles.infoValue, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  {BUILD_INFO.commitDate}
+                </Text>
               </View>
 
               <View style={[styles.infoRow, { borderBottomColor: colors.borderSubtle }]}>
@@ -374,6 +387,11 @@ const styles = StyleSheet.create({
   },
   buildBadgeText: {
     fontWeight: '800'
+  },
+  hashBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8
   },
   featureRow: {
     flexDirection: 'row',

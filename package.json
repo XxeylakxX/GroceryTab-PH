@@ -24,6 +24,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "build-info": "node scripts/generate-build-info.js",
     "build:sideload": "eas build --platform ios --profile sideload-unsigned --non-interactive",
     "convert:ipa": "powershell -ExecutionPolicy Bypass -File scripts/convert-to-ipa.ps1"
   },

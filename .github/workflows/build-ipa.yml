@@ -47,6 +47,9 @@ jobs:
       - name: 📦 Install NPM Dependencies
         run: npm ci
 
+      - name: 🏷️ Generate Build & Commit Metadata
+        run: node scripts/generate-build-info.js
+
       - name: 🛠️ Select Xcode Version
         run: |
           echo "Selected Xcode Version:"

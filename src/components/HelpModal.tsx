@@ -9,8 +9,8 @@ import {
   Pressable
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
 import { useAppTheme } from '../context/ThemeContext';
+import { BUILD_INFO } from '../constants/buildInfo';
 
 interface HelpModalProps {
   visible: boolean;
@@ -25,13 +25,6 @@ export const HelpModal: React.FC<HelpModalProps> = ({ visible, onClose, onOpenAb
     triggerHapticFeedback('light');
     onClose();
   };
-
-  const appVersion = Constants.expoConfig?.version || '1.0.0';
-  const buildNumber =
-    Constants.expoConfig?.ios?.buildNumber ||
-    Constants.expoConfig?.android?.versionCode?.toString() ||
-    Constants.nativeBuildVersion ||
-    '1';
 
   return (
     <Modal
@@ -183,31 +176,34 @@ export const HelpModal: React.FC<HelpModalProps> = ({ visible, onClose, onOpenAb
               </View>
             </View>
 
-            {/* Section 5: About & App Build Info */}
+            {/* Section 5: About & App Commit Info */}
             <View style={[styles.guideCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
               <View style={styles.guideCardHeader}>
                 <Text style={{ fontSize: scaleFont(26), marginRight: 10 }}>ℹ️</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.guideCardTitle, { color: colors.text, fontSize: scaleFont(17) }]}>
-                    5. About & App Build
+                    5. About & Commit Details
                   </Text>
                   <Text style={[styles.guideText, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
-                    Version {appVersion} • Build {buildNumber}
+                    v{BUILD_INFO.version} • Commit #{BUILD_INFO.commitCount} ({BUILD_INFO.commitHash})
                   </Text>
                 </View>
               </View>
               <View style={styles.bulletList}>
                 <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
-                  • <Text style={{ fontWeight: '800' }}>App Version:</Text> {appVersion}
+                  • <Text style={{ fontWeight: '800' }}>App Version:</Text> v{BUILD_INFO.version}
                 </Text>
                 <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
-                  • <Text style={{ fontWeight: '800' }}>Build Number:</Text> #{buildNumber}
+                  • <Text style={{ fontWeight: '800' }}>Commit Number:</Text> #{BUILD_INFO.commitCount}
+                </Text>
+                <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  • <Text style={{ fontWeight: '800' }}>Git Commit Hash:</Text> {BUILD_INFO.commitHash}
+                </Text>
+                <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  • <Text style={{ fontWeight: '800' }}>Commit Date:</Text> {BUILD_INFO.commitDate}
                 </Text>
                 <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
                   • <Text style={{ fontWeight: '800' }}>Bundle ID:</Text> ph.grocerytab.app
-                </Text>
-                <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
-                  • <Text style={{ fontWeight: '800' }}>Environment:</Text> iOS 18+ Standalone / Sideload
                 </Text>
               </View>
               {onOpenAbout && (
