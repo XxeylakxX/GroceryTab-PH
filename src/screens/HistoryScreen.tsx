@@ -47,7 +47,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
     r.items.forEach((item, idx) => {
       const icon = item.icon ? `${item.icon} ` : '';
       text += `${idx + 1}. ${icon}${item.name}\n`;
-      text += `   ${item.quantity} ${item.unit || 'pc'} x ${formatPHP(item.unitPrice)} = ${formatPHP(item.subtotal)}\n`;
+      text += `   ${item.quantity} ${item.unit || 'kg'} x ${formatPHP(item.unitPrice)} = ${formatPHP(item.subtotal)}\n`;
     });
 
     text += `------------------------------------\n`;
@@ -162,23 +162,24 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
           style={styles.cardHeader}
           accessibilityRole="button"
           accessibilityLabel={`Procurement on ${dateStr} at ${timeStr}. Total: ${formatPHP(r.totalProcurement)}`}
+          activeOpacity={0.75}
         >
           <View style={styles.cardHeaderLeft}>
             <View style={styles.dateRow}>
               <View style={[styles.calendarIconBubble, { backgroundColor: colors.surfaceHighlight }]}>
-                <Ionicons name="calendar-outline" size={scaleFont(15)} color={colors.primary} />
+                <Ionicons name="calendar-outline" size={scaleFont(14)} color={colors.primary} />
               </View>
-              <Text style={[styles.dateText, { color: colors.text, fontSize: scaleFont(15) }]}>
+              <Text style={[styles.dateText, { color: colors.text, fontSize: scaleFont(14) }]}>
                 {dateStr}
               </Text>
-              <Text style={[styles.timeText, { color: colors.textMuted, fontSize: scaleFont(13) }]}>
+              <Text style={[styles.timeText, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
                 • {timeStr}
               </Text>
             </View>
 
             {r.supplierName && r.supplierName.trim() ? (
               <View style={[styles.supplierPill, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
-                <Text style={[styles.supplierSubtitle, { color: colors.primary, fontSize: scaleFont(12) }]}>
+                <Text style={[styles.supplierSubtitle, { color: colors.primary, fontSize: scaleFont(11) }]}>
                   Vendor: {r.supplierName.trim()}
                 </Text>
               </View>
@@ -190,13 +191,13 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
           </View>
 
           <View style={styles.cardHeaderRight}>
-            <Text style={[styles.totalAmount, { color: colors.primary, fontSize: scaleFont(20) }]}>
+            <Text style={[styles.totalAmount, { color: colors.primary, fontSize: scaleFont(19) }]}>
               {formatPHP(r.totalProcurement)}
             </Text>
             <View style={[styles.chevronBubble, { backgroundColor: colors.surfaceHighlight }]}>
               <Ionicons
                 name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                size={scaleFont(18)}
+                size={scaleFont(16)}
                 color={colors.primary}
               />
             </View>
@@ -205,6 +206,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
 
         {isExpanded && (
           <View style={[styles.expandedContent, { borderTopColor: colors.borderSubtle }]}>
+            {/* Column Headers */}
             <View style={[styles.itemizedHeader, { borderBottomColor: colors.receiptBorder }]}>
               <Text style={[styles.itemizedColTitle, { color: colors.textSecondary, fontSize: scaleFont(11), flex: 2 }]}>
                 ITEM & QUANTITY
@@ -214,6 +216,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
               </Text>
             </View>
 
+            {/* Item Rows */}
             {r.items.map((it, idx) => (
               <View key={`${it.id}-${idx}`} style={[styles.itemizedRow, { borderBottomColor: colors.surfaceHighlight }]}>
                 <View style={styles.itemWithVisualRow}>
@@ -225,29 +228,29 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
                     )}
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.itName, { color: colors.text, fontSize: scaleFont(15) }]}>
+                    <Text style={[styles.itName, { color: colors.text, fontSize: scaleFont(14) }]}>
                       {it.name}
                     </Text>
-                    <Text style={[styles.itSub, { color: colors.textMuted, fontSize: scaleFont(13) }]}>
-                      {it.quantity} {it.unit || 'pc'} @ {formatPHP(it.unitPrice)}
+                    <Text style={[styles.itSub, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
+                      {it.quantity} {it.unit || 'kg'} @ {formatPHP(it.unitPrice)}
                     </Text>
                   </View>
                 </View>
                 <View style={{ alignItems: 'flex-end', minWidth: 80 }}>
-                  <Text style={[styles.itSubtotal, { color: colors.text, fontSize: scaleFont(15) }]}>
+                  <Text style={[styles.itSubtotal, { color: colors.text, fontSize: scaleFont(14) }]}>
                     {formatPHP(it.subtotal)}
                   </Text>
                 </View>
               </View>
             ))}
 
-            {/* Calculations Breakdown (NO DISCOUNTS) */}
+            {/* Calculations Breakdown */}
             <View style={styles.calcSummaryBox}>
               <View style={[styles.calcRow, styles.finalCalcRow]}>
-                <Text style={[styles.finalLabel, { color: colors.text, fontSize: scaleFont(15) }]}>
+                <Text style={[styles.finalLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
                   TOTAL PROCUREMENT:
                 </Text>
-                <Text style={[styles.finalVal, { color: colors.primary, fontSize: scaleFont(20) }]}>
+                <Text style={[styles.finalVal, { color: colors.primary, fontSize: scaleFont(19) }]}>
                   {formatPHP(r.totalProcurement)}
                 </Text>
               </View>
@@ -255,19 +258,19 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
               {r.cashPaid && r.cashPaid > 0 ? (
                 <View style={styles.tenderedBox}>
                   <View style={styles.calcRow}>
-                    <Text style={[styles.calcLabel, { color: colors.textMuted, fontSize: scaleFont(13) }]}>
-                      Cash Handed to Supplier:
+                    <Text style={[styles.calcLabel, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
+                      Cash Handed:
                     </Text>
-                    <Text style={[styles.calcVal, { color: colors.text, fontSize: scaleFont(14) }]}>
+                    <Text style={[styles.calcVal, { color: colors.text, fontSize: scaleFont(13) }]}>
                       {formatPHP(r.cashPaid)}
                     </Text>
                   </View>
                   {r.changeReceived !== undefined && (
                     <View style={styles.calcRow}>
-                      <Text style={[styles.calcLabel, { color: colors.success, fontSize: scaleFont(14), fontWeight: '700' }]}>
-                        Change (Sukli) Received:
+                      <Text style={[styles.calcLabel, { color: colors.success, fontSize: scaleFont(13), fontWeight: '700' }]}>
+                        Sukli (Change):
                       </Text>
-                      <Text style={[styles.calcVal, { color: colors.success, fontSize: scaleFont(16), fontWeight: '900' }]}>
+                      <Text style={[styles.calcVal, { color: colors.success, fontSize: scaleFont(15), fontWeight: '900' }]}>
                         {formatPHP(r.changeReceived)}
                       </Text>
                     </View>
@@ -284,8 +287,8 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
                 accessibilityRole="button"
                 accessibilityLabel="Copy procurement sheet text"
               >
-                <Ionicons name="copy-outline" size={scaleFont(16)} color={colors.text} />
-                <Text style={[styles.actionBtnText, { color: colors.text, fontSize: scaleFont(13) }]}>
+                <Ionicons name="copy-outline" size={scaleFont(15)} color={colors.text} style={{ marginRight: 4 }} />
+                <Text style={[styles.actionBtnText, { color: colors.text, fontSize: scaleFont(12) }]}>
                   Copy
                 </Text>
               </TouchableOpacity>
@@ -296,8 +299,8 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
                 accessibilityRole="button"
                 accessibilityLabel="Share procurement sheet via Viber, SMS, or Messenger"
               >
-                <Ionicons name="share-social-outline" size={scaleFont(16)} color={colors.text} />
-                <Text style={[styles.actionBtnText, { color: colors.text, fontSize: scaleFont(13) }]}>
+                <Ionicons name="share-social-outline" size={scaleFont(15)} color={colors.text} style={{ marginRight: 4 }} />
+                <Text style={[styles.actionBtnText, { color: colors.text, fontSize: scaleFont(12) }]}>
                   Share
                 </Text>
               </TouchableOpacity>
@@ -308,8 +311,8 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
                 accessibilityRole="button"
                 accessibilityLabel="Reload items into active procurement sheet"
               >
-                <Ionicons name="cart-outline" size={scaleFont(16)} color={colors.primaryText} />
-                <Text style={[styles.actionBtnText, { color: colors.primaryText, fontSize: scaleFont(13) }]}>
+                <Ionicons name="receipt-outline" size={scaleFont(15)} color={colors.primaryText} style={{ marginRight: 4 }} />
+                <Text style={[styles.actionBtnText, { color: colors.primaryText, fontSize: scaleFont(12) }]}>
                   Reload
                 </Text>
               </TouchableOpacity>
@@ -319,8 +322,9 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
                 style={[styles.deleteBtn, { backgroundColor: colors.dangerSurface, borderColor: colors.danger }]}
                 accessibilityRole="button"
                 accessibilityLabel="Delete this procurement record"
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
               >
-                <Ionicons name="trash-outline" size={scaleFont(18)} color={colors.danger} />
+                <Ionicons name="trash-outline" size={scaleFont(16)} color={colors.danger} />
               </TouchableOpacity>
             </View>
           </View>
@@ -331,13 +335,14 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      <View style={[styles.headerBar, { borderBottomColor: colors.border, backgroundColor: colors.surface }]}>
-        <View>
-          <Text style={[styles.headerTitle, { color: colors.text, fontSize: scaleFont(18) }]}>
+      {/* Top Section Header */}
+      <View style={[styles.headerBar, { borderBottomColor: colors.borderSubtle, backgroundColor: colors.surface }]}>
+        <View style={styles.headerInfoCol}>
+          <Text style={[styles.headerTitle, { color: colors.text, fontSize: scaleFont(16) }]}>
             Procurement Logs
           </Text>
-          <Text style={[styles.headerSub, { color: colors.textMuted, fontSize: scaleFont(13) }]}>
-            {receipts.length} {receipts.length === 1 ? 'record saved' : 'records saved'}
+          <Text style={[styles.headerSub, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
+            {receipts.length} {receipts.length === 1 ? 'record saved' : 'records saved in history'}
           </Text>
         </View>
 
@@ -348,114 +353,149 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
             accessibilityRole="button"
             accessibilityLabel="Clear all procurement logs"
           >
-            <Ionicons name="trash" size={scaleFont(16)} color={colors.danger} />
-            <Text style={[styles.clearAllBtnText, { color: colors.danger, fontSize: scaleFont(13) }]}>
-              Clear All
+            <Ionicons name="trash-outline" size={scaleFont(14)} color={colors.danger} style={{ marginRight: 4 }} />
+            <Text style={[styles.clearAllBtnText, { color: colors.danger, fontSize: scaleFont(12) }]}>
+              Clear History
             </Text>
           </TouchableOpacity>
         )}
       </View>
 
-      <FlatList
-        data={receipts}
-        keyExtractor={item => item.id}
-        renderItem={renderReceiptCard}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={{ fontSize: scaleFont(52), marginBottom: 10 }}>📋</Text>
-            <Text style={[styles.emptyTitle, { color: colors.text, fontSize: scaleFont(20) }]}>
-              No Saved Procurement Records
+      {/* Main List */}
+      {receipts.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={{ fontSize: scaleFont(46), marginBottom: 12 }}>📜</Text>
+          <Text style={[styles.emptyTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
+            No Procurement Records Yet
+          </Text>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
+            When you complete and save a restock sheet in the Procure tab, it will be safely archived here for your records.
+          </Text>
+
+          <TouchableOpacity
+            onPress={onNavigateToReceipt}
+            style={[styles.startProcureBtn, { backgroundColor: colors.primary }]}
+            accessibilityRole="button"
+            accessibilityLabel="Open Procure tab"
+          >
+            <Ionicons name="receipt-outline" size={scaleFont(18)} color={colors.primaryText} style={{ marginRight: 8 }} />
+            <Text style={[styles.startProcureBtnText, { color: colors.primaryText, fontSize: scaleFont(15) }]}>
+              Start Procurement Sheet
             </Text>
-            <Text style={[styles.emptyDesc, { color: colors.textMuted, fontSize: scaleFont(15) }]}>
-              When you finalize a procurement sheet in the Procure tab, your wholesale purchase logs will appear here.
-            </Text>
-            <TouchableOpacity
-              onPress={onNavigateToReceipt}
-              style={[styles.goToReceiptBtn, { backgroundColor: colors.primary }]}
-              accessibilityRole="button"
-              accessibilityLabel="Go to Procurement Sheet"
-            >
-              <Ionicons name="receipt" size={scaleFont(20)} color={colors.primaryText} style={{ marginRight: 8 }} />
-              <Text style={[styles.goToReceiptText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
-                Go to Procurement
-              </Text>
-            </TouchableOpacity>
-          </View>
-        }
-      />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={receipts}
+          keyExtractor={item => item.id}
+          renderItem={renderReceiptCard}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
+  screen: {
+    flex: 1
+  },
   headerBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1.5
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth
   },
-  headerTitle: { fontWeight: '800' },
-  headerSub: { marginTop: 2 },
+  headerInfoCol: {
+    flex: 1
+  },
+  headerTitle: {
+    fontWeight: '800'
+  },
+  headerSub: {
+    fontWeight: '500',
+    marginTop: 1
+  },
   clearAllBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
     borderRadius: 10,
-    borderWidth: 1.5,
-    minHeight: 44,
-    gap: 4
+    borderWidth: 1
   },
-  clearAllBtnText: { fontWeight: '700' },
-  listContent: { padding: 16, paddingBottom: 40, gap: 12 },
+  clearAllBtnText: {
+    fontWeight: '700'
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 32
+  },
   receiptCard: {
-    borderRadius: 22,
-    borderWidth: 1.5,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 10,
     overflow: 'hidden',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 5,
+    elevation: 2
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-    padding: 16,
-    minHeight: 68
+    padding: 14
   },
-  cardHeaderLeft: { flex: 1, minWidth: 160, paddingRight: 10 },
-  dateRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
-  calendarIconBubble: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
+  cardHeaderLeft: {
+    flex: 1,
+    gap: 4
+  },
+  dateRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 2
+    gap: 6
   },
-  dateText: { fontWeight: '800' },
-  timeText: { fontWeight: '600' },
+  calendarIconBubble: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  dateText: {
+    fontWeight: '800'
+  },
+  timeText: {
+    fontWeight: '500'
+  },
   supplierPill: {
     alignSelf: 'flex-start',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 6,
     borderWidth: 1,
-    marginTop: 4,
-    marginBottom: 2
+    marginTop: 2
   },
   supplierSubtitle: {
-    fontWeight: '800'
+    fontWeight: '700'
   },
-  receiptNumberText: { marginTop: 2, fontWeight: '600' },
-  cardHeaderRight: { alignItems: 'flex-end', justifyContent: 'center', gap: 4 },
+  receiptNumberText: {
+    fontWeight: '500',
+    marginTop: 2
+  },
+  cardHeaderRight: {
+    alignItems: 'flex-end',
+    gap: 8,
+    marginLeft: 10
+  },
+  totalAmount: {
+    fontWeight: '900'
+  },
   chevronBubble: {
     width: 28,
     height: 28,
@@ -463,35 +503,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  totalAmount: { fontWeight: '900' },
-  expandedContent: { borderTopWidth: 1.5, padding: 16, paddingTop: 12 },
+  expandedContent: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    paddingVertical: 12
+  },
   itemizedHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     paddingBottom: 6,
-    borderBottomWidth: 1,
-    marginBottom: 8
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    marginBottom: 6
   },
-  itemizedColTitle: { fontWeight: '700' },
+  itemizedColTitle: {
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
   itemizedRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    rowGap: 4,
+    justifyContent: 'space-between',
     paddingVertical: 8,
-    borderBottomWidth: 1
+    borderBottomWidth: StyleSheet.hairlineWidth
   },
   itemWithVisualRow: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    minWidth: 140,
-    gap: 8
+    gap: 10
   },
   tinyVisualBox: {
     width: 36,
     height: 36,
-    borderRadius: 10,
+    borderRadius: 8,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -501,75 +545,97 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%'
   },
-  itName: { fontWeight: '700' },
-  itSub: { marginTop: 2 },
-  itSubtotal: { fontWeight: '800' },
-  calcSummaryBox: { marginTop: 10, paddingTop: 6 },
+  itName: {
+    fontWeight: '700'
+  },
+  itSub: {
+    fontWeight: '500',
+    marginTop: 1
+  },
+  itSubtotal: {
+    fontWeight: '800'
+  },
+  calcSummaryBox: {
+    marginTop: 10,
+    gap: 4
+  },
   calcRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    rowGap: 4,
-    paddingVertical: 4
+    paddingVertical: 2
   },
-  calcLabel: {},
-  calcVal: { fontWeight: '700' },
   finalCalcRow: {
-    marginTop: 6,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.1)'
+    paddingVertical: 6
   },
-  finalLabel: { fontWeight: '800' },
-  finalVal: { fontWeight: '900' },
+  finalLabel: {
+    fontWeight: '800'
+  },
+  finalVal: {
+    fontWeight: '900'
+  },
   tenderedBox: {
-    marginTop: 6,
-    paddingTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.06)'
+    paddingTop: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.08)'
+  },
+  calcLabel: {
+    fontWeight: '500'
+  },
+  calcVal: {
+    fontWeight: '700'
   },
   actionButtonsRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
     gap: 8,
-    marginTop: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.08)'
+    marginTop: 14
   },
   receiptActionBtn: {
     flex: 1,
-    minWidth: 80,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderRadius: 12,
-    minHeight: 46,
-    paddingHorizontal: 8,
-    gap: 6
+    paddingVertical: 9,
+    borderRadius: 10,
+    borderWidth: 1,
+    minHeight: 40
+  },
+  actionBtnText: {
+    fontWeight: '700'
   },
   deleteBtn: {
-    width: 46,
-    height: 46,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  actionBtnText: { fontWeight: '800' },
-  emptyContainer: { alignItems: 'center', paddingVertical: 50, paddingHorizontal: 24 },
-  emptyTitle: { fontWeight: '800', marginTop: 8 },
-  emptyDesc: { textAlign: 'center', marginTop: 8, lineHeight: 22 },
-  goToReceiptBtn: {
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+    marginTop: 40
+  },
+  emptyTitle: {
+    fontWeight: '800',
+    marginBottom: 6
+  },
+  emptySubtitle: {
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20
+  },
+  startProcureBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 22,
-    paddingVertical: 14,
-    paddingHorizontal: 22,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 14,
-    minHeight: 52
+    minHeight: 48
   },
-  goToReceiptText: { fontWeight: '800' }
+  startProcureBtnText: {
+    fontWeight: '800'
+  }
 });

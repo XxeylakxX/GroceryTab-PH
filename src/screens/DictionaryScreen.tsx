@@ -34,6 +34,8 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
     deleteCatalogItem,
     resetCatalog,
     addToCart,
+    incrementCartItem,
+    decrementCartItem,
     cartItems
   } = useApp();
 
@@ -57,10 +59,10 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
 
   // Count items in active procurement
   const cartItemCounts = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { qty: number; cartId: string }>();
     cartItems.forEach(ci => {
-      map.set(ci.id, ci.quantity);
-      map.set(ci.name.toLowerCase().trim(), ci.quantity);
+      map.set(ci.id, { qty: ci.quantity, cartId: ci.id });
+      map.set(ci.name.toLowerCase().trim(), { qty: ci.quantity, cartId: ci.id });
     });
     return map;
   }, [cartItems]);
@@ -198,6 +200,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
           notes: formNotes.trim()
         });
       }
+      triggerHapticFeedback('success');
       setIsModalOpen(false);
     } catch {
       Alert.alert('Error', 'Failed to save item. Please try again.');
@@ -214,7 +217,10 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => deleteCatalogItem(item.id)
+          onPress: () => {
+            deleteCatalogItem(item.id);
+            setIsModalOpen(false);
+          }
         }
       ]
     );
@@ -236,9 +242,11 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
     );
   };
 
-  // Render Visual Grid Tile (Picture / Icon First with Double-Bezel Architecture)
+  // Render Visual Grid Tile (Picture / Icon First with Double-Bezel Concentric Architecture)
   const renderGridCard = ({ item }: { item: CatalogItem }) => {
-    const qtyInCart = cartItemCounts.get(item.id) || cartItemCounts.get(item.name.toLowerCase().trim()) || 0;
+    const cartEntry = cartItemCounts.get(item.id) || cartItemCounts.get(item.name.toLowerCase().trim());
+    const qtyInCart = cartEntry ? cartEntry.qty : 0;
+    const cartId = cartEntry ? cartEntry.cartId : item.id;
 
     return (
       <View
@@ -251,9 +259,13 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
           }
         ]}
       >
-        {/* Recessed Concentric Image Chamber */}
+        {/* Concentric Image Chamber */}
         <TouchableOpacity
-          onPress={() => addToCart(item)}
+          onPress={() => {
+            triggerHapticFeedback('light');
+            addToCart(item);
+          }}
+          activeOpacity={0.8}
           style={[
             styles.gridImageWrapper,
             {
@@ -261,29 +273,46 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
               borderColor: colors.borderSubtle
             }
           ]}
-          accessibilityRole="button"
-          accessibilityLabel={`Add ${item.name} to procurement tally. Price: ${formatPHP(item.unitPrice)}`}
+          accessibilityLabel={`${item.name}, tap to add to procurement sheet`}
         >
           {item.imageUri ? (
-            <Image source={{ uri: item.imageUri }} style={styles.tilePhoto} resizeMode="cover" />
+            <Image source={{ uri: item.imageUri }} style={styles.gridImage} resizeMode="cover" />
           ) : (
-            <Text style={styles.tileEmoji}>{item.icon || '🛒'}</Text>
+            <Text style={[styles.gridEmoji, { fontSize: scaleFont(38) }]}>
+              {item.icon || '🛒'}
+            </Text>
           )}
 
-          {/* Active Qty Badge */}
+          {/* Edit Pencil Pill */}
+          <TouchableOpacity
+            onPress={() => handleOpenEdit(item)}
+            style={[styles.editIconBadge, { backgroundColor: colors.surface, borderColor: colors.borderSubtle }]}
+            accessibilityRole="button"
+            accessibilityLabel={`Edit details for ${item.name}`}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="pencil" size={14} color={colors.textSecondary} />
+          </TouchableOpacity>
+
+          {/* Cart Quantity Pill Badge if active */}
           {qtyInCart > 0 && (
-            <View style={[styles.tileBadge, { backgroundColor: colors.accent, borderColor: colors.card }]}>
-              <Text style={styles.tileBadgeText}>{qtyInCart}x</Text>
+            <View style={[styles.gridCartBadge, { backgroundColor: colors.primary, borderColor: colors.surface }]}>
+              <Text style={styles.gridCartBadgeText}>{qtyInCart}</Text>
             </View>
           )}
         </TouchableOpacity>
 
-        {/* Item Title & Price */}
-        <View style={styles.gridInfoBox}>
-          <Text style={[styles.gridCategoryEyebrow, { color: colors.primary, fontSize: scaleFont(10) }]}>
+        {/* Content Section */}
+        <View style={styles.gridCardContent}>
+          {/* Category Eyebrow */}
+          <Text
+            style={[styles.gridCategoryEyebrow, { color: colors.primary, fontSize: scaleFont(10) }]}
+            numberOfLines={1}
+          >
             {item.category.toUpperCase()}
           </Text>
 
+          {/* Item Name */}
           <Text
             style={[styles.gridItemName, { color: colors.text, fontSize: scaleFont(15) }]}
             numberOfLines={2}
@@ -291,69 +320,80 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
             {item.name}
           </Text>
 
+          {/* Price & Unit Line */}
           <View style={styles.gridPriceRow}>
-            <Text style={[styles.gridPrice, { color: colors.text, fontSize: scaleFont(17) }]}>
+            <Text style={[styles.gridPriceText, { color: colors.text, fontSize: scaleFont(16) }]}>
               {formatPHP(item.unitPrice)}
             </Text>
-            <Text style={[styles.gridUnit, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
-              /{item.unit}
+            <Text style={[styles.gridUnitText, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
+              /{item.unit || 'kg'}
             </Text>
           </View>
-        </View>
 
-        {/* Action Buttons: Edit, Delete, and Add to Tally */}
-        <View style={styles.gridActionsRow}>
-          <TouchableOpacity
-            onPress={() => handleOpenEdit(item)}
-            style={[styles.gridIconBtn, { borderColor: colors.borderSubtle, backgroundColor: colors.surfaceHighlight }]}
-            accessibilityRole="button"
-            accessibilityLabel={`Edit ${item.name}`}
-            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-          >
-            <Ionicons name="pencil" size={scaleFont(15)} color={colors.text} />
-          </TouchableOpacity>
+          {/* Quick Add or Stepper Pill */}
+          <View style={styles.gridActionArea}>
+            {qtyInCart > 0 ? (
+              <View style={[styles.gridStepperBox, { backgroundColor: colors.surfaceHighlight, borderColor: colors.primary }]}>
+                <TouchableOpacity
+                  onPress={() => {
+                    triggerHapticFeedback('light');
+                    decrementCartItem(cartId);
+                  }}
+                  style={styles.gridStepperBtn}
+                  accessibilityLabel={`Decrease quantity for ${item.name}`}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <Ionicons name="remove" size={scaleFont(16)} color={colors.text} />
+                </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => handleDeleteItem(item)}
-            style={[styles.gridIconBtn, { borderColor: colors.danger, backgroundColor: colors.dangerSurface }]}
-            accessibilityRole="button"
-            accessibilityLabel={`Delete ${item.name} from catalog`}
-            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-          >
-            <Ionicons name="trash-outline" size={scaleFont(15)} color={colors.danger} />
-          </TouchableOpacity>
+                <Text style={[styles.gridStepperQty, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  {qtyInCart}
+                </Text>
 
-          <TouchableOpacity
-            onPress={() => addToCart(item)}
-            style={[
-              styles.gridAddBtn,
-              { backgroundColor: qtyInCart > 0 ? colors.accent : colors.primary }
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={`Add ${item.name} to procurement tally`}
-          >
-            <Ionicons
-              name={qtyInCart > 0 ? 'checkmark' : 'add'}
-              size={scaleFont(16)}
-              color={colors.primaryText}
-            />
-            <Text style={[styles.gridAddText, { color: colors.primaryText, fontSize: scaleFont(12) }]}>
-              {qtyInCart > 0 ? `(${qtyInCart})` : '+ Add'}
-            </Text>
-          </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    triggerHapticFeedback('light');
+                    incrementCartItem(cartId);
+                  }}
+                  style={styles.gridStepperBtn}
+                  accessibilityLabel={`Increase quantity for ${item.name}`}
+                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                >
+                  <Ionicons name="add" size={scaleFont(16)} color={colors.text} />
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHapticFeedback('light');
+                  addToCart(item);
+                }}
+                style={[styles.gridAddBtn, { backgroundColor: colors.primary }]}
+                accessibilityRole="button"
+                accessibilityLabel={`Add ${item.name} to procurement sheet`}
+              >
+                <Ionicons name="add" size={scaleFont(16)} color={colors.primaryText} style={{ marginRight: 2 }} />
+                <Text style={[styles.gridAddBtnText, { color: colors.primaryText, fontSize: scaleFont(13) }]}>
+                  Add
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       </View>
     );
   };
 
-  // Render List View Row
-  const renderListCard = ({ item }: { item: CatalogItem }) => {
-    const qtyInCart = cartItemCounts.get(item.id) || cartItemCounts.get(item.name.toLowerCase().trim()) || 0;
+  // Render Compact Inset Grouped List Item
+  const renderListItem = ({ item }: { item: CatalogItem }) => {
+    const cartEntry = cartItemCounts.get(item.id) || cartItemCounts.get(item.name.toLowerCase().trim());
+    const qtyInCart = cartEntry ? cartEntry.qty : 0;
+    const cartId = cartEntry ? cartEntry.cartId : item.id;
 
     return (
       <View
         style={[
-          styles.itemCard,
+          styles.listRow,
           {
             backgroundColor: colors.card,
             borderColor: colors.cardBorder,
@@ -361,98 +401,87 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
           }
         ]}
       >
-        <View style={styles.cardHeader}>
-          {/* Visual Icon / Picture */}
-          <View
-            style={[
-              styles.listVisualBox,
-              {
-                backgroundColor: colors.cardInner,
-                borderColor: colors.borderSubtle
-              }
-            ]}
-          >
-            {item.imageUri ? (
-              <Image source={{ uri: item.imageUri }} style={styles.listImage} resizeMode="cover" />
-            ) : (
-              <Text style={{ fontSize: scaleFont(26) }}>{item.icon || '🛒'}</Text>
-            )}
-          </View>
+        {/* Visual Box */}
+        <TouchableOpacity
+          onPress={() => {
+            triggerHapticFeedback('light');
+            addToCart(item);
+          }}
+          style={[styles.listVisualBox, { backgroundColor: colors.cardInner, borderColor: colors.borderSubtle }]}
+        >
+          {item.imageUri ? (
+            <Image source={{ uri: item.imageUri }} style={styles.listImage} resizeMode="cover" />
+          ) : (
+            <Text style={{ fontSize: scaleFont(24) }}>{item.icon || '🛒'}</Text>
+          )}
+          {qtyInCart > 0 && (
+            <View style={[styles.listBadge, { backgroundColor: colors.primary, borderColor: colors.surface }]}>
+              <Text style={styles.listBadgeText}>{qtyInCart}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
 
-          <View style={styles.cardInfo}>
-            <Text style={[styles.itemCategoryBadge, { color: colors.primary, fontSize: scaleFont(11) }]}>
-              {item.category.toUpperCase()}
-            </Text>
-            <Text style={[styles.itemName, { color: colors.text, fontSize: scaleFont(16) }]}>
-              {item.name}
-            </Text>
-            {item.supplier ? (
-              <Text style={[styles.itemNotes, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
-                Vendor: {item.supplier}
+        {/* Text Information */}
+        <TouchableOpacity
+          onPress={() => handleOpenEdit(item)}
+          style={styles.listInfoCol}
+          accessibilityLabel={`Edit details for ${item.name}`}
+        >
+          <Text style={[styles.listCategoryEyebrow, { color: colors.primary, fontSize: scaleFont(10) }]}>
+            {item.category.toUpperCase()}
+          </Text>
+          <Text style={[styles.listItemName, { color: colors.text, fontSize: scaleFont(15) }]}>
+            {item.name}
+          </Text>
+          <Text style={[styles.listPriceText, { color: colors.textSecondary, fontSize: scaleFont(13) }]}>
+            {formatPHP(item.unitPrice)} / {item.unit || 'kg'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* Stepper or Add Button */}
+        <View style={styles.listActionArea}>
+          {qtyInCart > 0 ? (
+            <View style={[styles.listStepperBox, { backgroundColor: colors.surfaceHighlight, borderColor: colors.primary }]}>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHapticFeedback('light');
+                  decrementCartItem(cartId);
+                }}
+                style={styles.listStepperBtn}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Ionicons name="remove" size={scaleFont(16)} color={colors.text} />
+              </TouchableOpacity>
+              <Text style={[styles.listStepperQty, { color: colors.text, fontSize: scaleFont(14) }]}>
+                {qtyInCart}
               </Text>
-            ) : null}
-          </View>
-
-          {/* Unit Price */}
-          <View style={styles.priceColumn}>
-            <Text style={[styles.priceTag, { color: colors.text, fontSize: scaleFont(18) }]}>
-              {formatPHP(item.unitPrice)}
-            </Text>
-            <Text style={[styles.unitSub, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
-              per {item.unit}
-            </Text>
-          </View>
-        </View>
-
-        {/* Action Row */}
-        <View style={styles.cardFooter}>
-          <TouchableOpacity
-            onPress={() => handleOpenEdit(item)}
-            style={[styles.smallBtn, { borderColor: colors.borderSubtle, backgroundColor: colors.surfaceHighlight }]}
-            accessibilityRole="button"
-            accessibilityLabel={`Edit ${item.name}`}
-            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-          >
-            <Ionicons name="create-outline" size={scaleFont(16)} color={colors.text} />
-            <Text style={[styles.smallBtnText, { color: colors.text, fontSize: scaleFont(13) }]}>
-              Edit
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => handleDeleteItem(item)}
-            style={[styles.smallBtn, { borderColor: colors.danger, backgroundColor: colors.dangerSurface }]}
-            accessibilityRole="button"
-            accessibilityLabel={`Delete ${item.name}`}
-            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-          >
-            <Ionicons name="trash-outline" size={scaleFont(16)} color={colors.danger} />
-            <Text style={[styles.smallBtnText, { color: colors.danger, fontSize: scaleFont(13) }]}>
-              Delete
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => addToCart(item)}
-            style={[
-              styles.addToReceiptBtn,
-              {
-                backgroundColor: qtyInCart > 0 ? colors.accent : colors.primary
-              }
-            ]}
-            accessibilityRole="button"
-            accessibilityLabel={`Add ${item.name} to procurement tally`}
-          >
-            <Ionicons
-              name={qtyInCart > 0 ? 'checkmark-circle' : 'add-circle'}
-              size={scaleFont(18)}
-              color={colors.primaryText}
-              style={{ marginRight: 6 }}
-            />
-            <Text style={[styles.addToReceiptText, { color: colors.primaryText, fontSize: scaleFont(14) }]}>
-              {qtyInCart > 0 ? `On Sheet (${qtyInCart}) +` : '+ To Sheet'}
-            </Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  triggerHapticFeedback('light');
+                  incrementCartItem(cartId);
+                }}
+                style={styles.listStepperBtn}
+                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              >
+                <Ionicons name="add" size={scaleFont(16)} color={colors.text} />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              onPress={() => {
+                triggerHapticFeedback('light');
+                addToCart(item);
+              }}
+              style={[styles.listAddBtn, { backgroundColor: colors.primary }]}
+              accessibilityRole="button"
+              accessibilityLabel={`Add ${item.name} to procurement sheet`}
+            >
+              <Ionicons name="add" size={scaleFont(16)} color={colors.primaryText} style={{ marginRight: 2 }} />
+              <Text style={[styles.listAddBtnText, { color: colors.primaryText, fontSize: scaleFont(13) }]}>
+                Add
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
@@ -460,76 +489,87 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
 
   return (
     <View style={[styles.screen, { backgroundColor: colors.background }]}>
-      {/* Search Bar & Visual View Toggle */}
-      <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderBottomColor: colors.border }]}>
-        <View style={[styles.searchBar, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Ionicons name="search" size={scaleFont(22)} color={colors.textMuted} style={styles.searchIcon} />
-          <TextInput
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Search vegetables (e.g. Garlic, Onion, Tomato)..."
-            placeholderTextColor={colors.textMuted}
-            style={[styles.searchInput, { color: colors.text, fontSize: scaleFont(16) }]}
-            accessibilityLabel="Search items"
-            clearButtonMode="while-editing"
-          />
-          {searchQuery.length > 0 && (
-            <TouchableOpacity
-              onPress={() => setSearchQuery('')}
-              style={styles.clearSearchBtn}
-              accessibilityLabel="Clear search input"
-            >
-              <Ionicons name="close-circle" size={scaleFont(22)} color={colors.textMuted} />
-            </TouchableOpacity>
-          )}
+      {/* Top Search & Filter Bar */}
+      <View style={[styles.searchFilterContainer, { backgroundColor: colors.surface, borderBottomColor: colors.borderSubtle }]}>
+        {/* iOS Search Bar */}
+        <View style={styles.searchBarRow}>
+          <View style={[styles.iosSearchBar, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderSubtle }]}>
+            <Ionicons name="search" size={scaleFont(18)} color={colors.textMuted} style={styles.searchIcon} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Search vegetables..."
+              placeholderTextColor={colors.textMuted}
+              style={[styles.searchInput, { color: colors.text, fontSize: scaleFont(15) }]}
+              clearButtonMode="while-editing"
+            />
+            {searchQuery.length > 0 && Platform.OS !== 'ios' && (
+              <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name="close-circle" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+            )}
+          </View>
 
-          {/* Toggle between Visual Grid and Compact List */}
+          {/* View Mode Toggle (Grid/List) */}
           <TouchableOpacity
-            onPress={toggleViewMode}
-            style={[styles.toggleViewBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+            onPress={() => {
+              triggerHapticFeedback('light');
+              toggleViewMode();
+            }}
+            style={[styles.toolBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.cardBorder }]}
             accessibilityRole="button"
-            accessibilityLabel={`Switch to ${viewMode === 'visual-grid' ? 'List View' : 'Picture Grid View'}`}
+            accessibilityLabel={`Switch to ${viewMode === 'visual-grid' ? 'list' : 'grid'} view`}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Ionicons
-              name={viewMode === 'visual-grid' ? 'list' : 'grid'}
+              name={viewMode === 'visual-grid' ? 'list-outline' : 'grid-outline'}
               size={scaleFont(20)}
               color={colors.text}
             />
           </TouchableOpacity>
+
+          {/* Add New Item Button */}
+          <TouchableOpacity
+            onPress={handleOpenAdd}
+            style={[styles.toolBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}
+            accessibilityRole="button"
+            accessibilityLabel="Add new vegetable item to catalog"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons name="add" size={scaleFont(22)} color={colors.primaryText} />
+          </TouchableOpacity>
         </View>
 
-        {/* Category Filter Chips */}
-        <FlatList
+        {/* Horizontal Category Segmented Filter Strip */}
+        <ScrollView
           horizontal
-          data={CATEGORIES}
-          keyExtractor={item => item}
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryChipsList}
-          renderItem={({ item: cat }) => {
+          contentContainerStyle={styles.categoryScrollContent}
+        >
+          {['All Vegetables', ...CATEGORIES].map((cat, idx) => {
             const isSelected = selectedCategory === cat;
             return (
               <TouchableOpacity
+                key={idx}
                 onPress={() => {
                   triggerHapticFeedback('light');
                   setSelectedCategory(cat);
                 }}
                 style={[
-                  styles.catChip,
-                  {
-                    backgroundColor: isSelected ? colors.primary : colors.card,
-                    borderColor: isSelected ? colors.primary : colors.border,
-                    borderWidth: 2
-                  }
+                  styles.categoryPill,
+                  isSelected
+                    ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                    : { backgroundColor: colors.card, borderColor: colors.borderSubtle }
                 ]}
                 accessibilityRole="button"
-                accessibilityState={{ selected: isSelected }}
+                accessibilityLabel={`Filter by ${cat}`}
               >
                 <Text
                   style={[
-                    styles.catChipText,
+                    styles.categoryPillText,
                     {
                       color: isSelected ? colors.primaryText : colors.text,
-                      fontSize: scaleFont(14),
+                      fontSize: scaleFont(13),
                       fontWeight: isSelected ? '800' : '600'
                     }
                   ]}
@@ -538,329 +578,283 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
                 </Text>
               </TouchableOpacity>
             );
-          }}
-        />
+          })}
+        </ScrollView>
       </View>
 
-      {/* Subheader: Item count & Add Button */}
-      <View style={styles.subHeader}>
-        <View>
-          <Text style={[styles.countText, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
-            {filteredItems.length} {filteredItems.length === 1 ? 'item' : 'items'} in inventory
+      {/* Main Items View */}
+      {filteredItems.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={{ fontSize: scaleFont(44), marginBottom: 12 }}>🔍</Text>
+          <Text style={[styles.emptyTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
+            No Vegetables Found
           </Text>
-        </View>
-        <View style={styles.subHeaderActions}>
-          <TouchableOpacity
-            onPress={handleResetDefaults}
-            style={[styles.resetDefaultsBtn, { borderColor: colors.border }]}
-            accessibilityLabel="Restore default staples"
-          >
-            <Ionicons name="refresh" size={scaleFont(16)} color={colors.textMuted} />
-          </TouchableOpacity>
+          <Text style={[styles.emptySubtitle, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
+            {searchQuery
+              ? `No items match "${searchQuery}". Check your spelling or add a new item.`
+              : 'No items in this category.'}
+          </Text>
+
           <TouchableOpacity
             onPress={handleOpenAdd}
             style={[styles.addNewItemBtn, { backgroundColor: colors.primary }]}
-            accessibilityLabel="Add new inventory item"
-            accessibilityRole="button"
           >
-            <Ionicons name="add" size={scaleFont(20)} color={colors.primaryText} />
-            <Text style={[styles.addNewItemText, { color: colors.primaryText, fontSize: scaleFont(15) }]}>
-              + Add Item
+            <Ionicons name="add-circle-outline" size={scaleFont(18)} color={colors.primaryText} style={{ marginRight: 6 }} />
+            <Text style={[styles.addNewItemBtnText, { color: colors.primaryText, fontSize: scaleFont(14) }]}>
+              + Add New Item
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
-
-      {/* Item List or Visual Picture Grid */}
-      <FlatList
-        key={viewMode} // Re-renders cleanly when toggling columns
-        numColumns={viewMode === 'visual-grid' ? 2 : 1}
-        data={filteredItems}
-        keyExtractor={item => item.id}
-        renderItem={viewMode === 'visual-grid' ? renderGridCard : renderListCard}
-        columnWrapperStyle={viewMode === 'visual-grid' ? styles.gridRow : undefined}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="search-outline" size={scaleFont(48)} color={colors.textMuted} />
-            <Text style={[styles.emptyStateTitle, { color: colors.text, fontSize: scaleFont(18) }]}>
-              No items found
-            </Text>
-            <Text style={[styles.emptyStateDesc, { color: colors.textMuted, fontSize: scaleFont(14) }]}>
-              No items match "{searchQuery}". Tap below to add it!
-            </Text>
-            <TouchableOpacity
-              onPress={handleOpenAdd}
-              style={[styles.emptyAddBtn, { backgroundColor: colors.primary }]}
-            >
-              <Text style={[styles.emptyAddBtnText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
-                + Add "{searchQuery}"
+      ) : (
+        <FlatList
+          key={viewMode} // Re-mount when changing between 1 col (list) and 2 cols (grid)
+          data={filteredItems}
+          keyExtractor={item => item.id}
+          numColumns={viewMode === 'visual-grid' ? 2 : 1}
+          renderItem={viewMode === 'visual-grid' ? renderGridCard : renderListItem}
+          contentContainerStyle={[
+            styles.listContainer,
+            viewMode === 'visual-grid' ? styles.gridListContainer : styles.rowListContainer
+          ]}
+          showsVerticalScrollIndicator={false}
+          ListFooterComponent={
+            <View style={styles.catalogFooter}>
+              <Text style={[styles.catalogFooterCount, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
+                Showing {filteredItems.length} of {catalogItems.length} vegetables
               </Text>
-            </TouchableOpacity>
-          </View>
-        }
-      />
-
-      {/* Floating Active Procurement Pill */}
-      {cartItems.length > 0 && (
-        <TouchableOpacity
-          onPress={onNavigateToReceipt}
-          style={[styles.floatingCartPill, { backgroundColor: colors.accent, borderColor: colors.cardBorder }]}
-          accessibilityRole="button"
-          accessibilityLabel={`View Procurement Tally Sheet. ${cartItems.length} items listed.`}
-        >
-          <Ionicons name="receipt" size={scaleFont(22)} color="#FFFFFF" style={{ marginRight: 8 }} />
-          <Text style={[styles.floatingCartText, { fontSize: scaleFont(16) }]}>
-            View Procurement Sheet ({cartItems.length})
-          </Text>
-          <Ionicons name="chevron-forward" size={scaleFont(20)} color="#FFFFFF" style={{ marginLeft: 6 }} />
-        </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleResetDefaults}
+                style={[styles.resetDefaultsBtn, { borderColor: colors.borderSubtle }]}
+              >
+                <Ionicons name="refresh-outline" size={scaleFont(14)} color={colors.textSecondary} style={{ marginRight: 4 }} />
+                <Text style={[styles.resetDefaultsText, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
+                  Reset to Standard Palengke Catalog
+                </Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
       )}
 
-      {/* Add / Edit Item Modal */}
+      {/* ==================================================================== */}
+      {/* NATIVE iOS FORM SHEET: Add / Edit Item */}
+      {/* ==================================================================== */}
       <Modal
         visible={isModalOpen}
         transparent={true}
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setIsModalOpen(false)}
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
+          style={styles.sheetOverlay}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 0}
         >
-          <Pressable style={styles.modalBackdrop} onPress={() => setIsModalOpen(false)} />
-          <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-              <Text style={[styles.modalTitle, { color: colors.text, fontSize: scaleFont(20) }]}>
-                {editingItem ? 'Edit Item & Price' : 'Add New Inventory Item'}
-              </Text>
-              <Text style={[styles.modalSub, { color: colors.textSecondary, fontSize: scaleFont(14) }]}>
-                Set visual pictures/icons and wholesale procurement cost
-              </Text>
+          <Pressable style={styles.sheetBackdrop} onPress={() => setIsModalOpen(false)} />
+          <View style={[styles.sheetCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+            {/* Grabber */}
+            <View style={styles.sheetGrabberContainer}>
+              <View style={[styles.sheetGrabber, { backgroundColor: colors.borderSubtle }]} />
+            </View>
 
-              {/* Picture / Icon Section */}
-              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                Item Picture or Icon:
+            {/* iOS Nav Header */}
+            <View style={[styles.sheetNavBar, { borderBottomColor: colors.borderSubtle }]}>
+              <TouchableOpacity
+                onPress={() => setIsModalOpen(false)}
+                style={styles.sheetNavBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel editing item"
+              >
+                <Text style={[styles.sheetNavBtnText, { color: colors.textSecondary, fontSize: scaleFont(16) }]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <Text style={[styles.sheetNavTitle, { color: colors.text, fontSize: scaleFont(17) }]}>
+                {editingItem ? 'Edit Item' : 'New Item'}
               </Text>
-              <View style={styles.imageSelectorRow}>
-                {/* Preview Box */}
-                <View style={[styles.photoPreviewBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <TouchableOpacity
+                onPress={handleSaveItem}
+                style={styles.sheetNavBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Save item to catalog"
+              >
+                <Text style={[styles.sheetNavBtnBold, { color: colors.primary, fontSize: scaleFont(16) }]}>
+                  Save
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={styles.sheetContentContainer}
+            >
+              {/* Photo / Visual Chamber */}
+              <View style={styles.photoChamberRow}>
+                <View style={[styles.formPhotoPreview, { backgroundColor: colors.cardInner, borderColor: colors.borderSubtle }]}>
                   {formImageUri ? (
                     <Image source={{ uri: formImageUri }} style={styles.previewImage} resizeMode="cover" />
                   ) : (
-                    <Text style={{ fontSize: 36 }}>{formIcon}</Text>
+                    <Text style={{ fontSize: scaleFont(42) }}>{formIcon}</Text>
                   )}
                 </View>
 
-                {/* Photo Action Buttons */}
-                <View style={styles.photoActions}>
+                <View style={styles.photoActionsCol}>
                   <TouchableOpacity
-                    onPress={handleTakePhoto}
-                    style={[styles.photoBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+                    onPress={handlePickImage}
+                    style={[styles.photoActionBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
                   >
-                    <Ionicons name="camera-outline" size={scaleFont(18)} color={colors.text} />
-                    <Text style={[styles.photoBtnText, { color: colors.text, fontSize: scaleFont(12) }]}>
-                      Take Photo
+                    <Ionicons name="images-outline" size={scaleFont(16)} color={colors.primary} style={{ marginRight: 6 }} />
+                    <Text style={[styles.photoActionText, { color: colors.primary, fontSize: scaleFont(13) }]}>
+                      Photo Library
                     </Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
-                    onPress={handlePickImage}
-                    style={[styles.photoBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+                    onPress={handleTakePhoto}
+                    style={[styles.photoActionBtn, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
                   >
-                    <Ionicons name="images-outline" size={scaleFont(18)} color={colors.text} />
-                    <Text style={[styles.photoBtnText, { color: colors.text, fontSize: scaleFont(12) }]}>
-                      Pick Photo
+                    <Ionicons name="camera-outline" size={scaleFont(16)} color={colors.primary} style={{ marginRight: 6 }} />
+                    <Text style={[styles.photoActionText, { color: colors.primary, fontSize: scaleFont(13) }]}>
+                      Take Photo
                     </Text>
                   </TouchableOpacity>
 
                   {formImageUri && (
                     <TouchableOpacity
                       onPress={() => setFormImageUri(undefined)}
-                      style={[styles.photoBtn, { borderColor: colors.danger }]}
+                      style={[styles.removePhotoBtn]}
                     >
-                      <Text style={[styles.photoBtnText, { color: colors.danger, fontSize: scaleFont(12) }]}>
-                        Use Emoji
+                      <Text style={[styles.removePhotoText, { color: colors.danger, fontSize: scaleFont(12) }]}>
+                        Use Emoji Icon Instead
                       </Text>
                     </TouchableOpacity>
                   )}
                 </View>
               </View>
 
-              {/* Emoji Icon Grid Picker */}
-              <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(13), marginTop: 8 }]}>
-                Or Select from Preset Visual Icons:
+              {/* Form Fields: Inset Grouped */}
+              <Text style={[styles.sheetSectionTitle, { color: colors.textSecondary, fontSize: scaleFont(12), marginTop: 14 }]}>
+                ITEM DETAILS
               </Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.iconScrollRow}>
-                {PRESET_ICONS.map(ic => (
-                  <TouchableOpacity
-                    key={ic}
-                    onPress={() => {
-                      setFormIcon(ic);
-                      setFormImageUri(undefined);
-                      triggerHapticFeedback('light');
-                    }}
-                    style={[
-                      styles.iconPickTile,
-                      {
-                        backgroundColor: formIcon === ic && !formImageUri ? colors.primary : colors.card,
-                        borderColor: formIcon === ic && !formImageUri ? colors.primary : colors.border
-                      }
-                    ]}
-                  >
-                    <Text style={{ fontSize: 24 }}>{ic}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
+              <View style={[styles.insetGroupedCard, { backgroundColor: colors.card, borderColor: colors.borderSubtle }]}>
+                {/* Item Name */}
+                <View style={[styles.formRow, { borderBottomColor: colors.borderSubtle }]}>
+                  <Text style={[styles.formRowLabel, { color: colors.text, fontSize: scaleFont(15) }]}>
+                    Name
+                  </Text>
+                  <TextInput
+                    value={formName}
+                    onChangeText={setFormName}
+                    placeholder="e.g. Talong (Eggplant)"
+                    placeholderTextColor={colors.textMuted}
+                    style={[styles.formRowInput, { color: colors.text, fontSize: scaleFont(15) }]}
+                  />
+                </View>
 
-              {/* Name */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                  Item Name:
-                </Text>
-                <TextInput
-                  value={formName}
-                  onChangeText={setFormName}
-                  placeholder="e.g. Rice (Dinorado) or White Sugar"
-                  placeholderTextColor={colors.textMuted}
-                  style={[
-                    styles.modalInput,
-                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
-                  ]}
-                />
-              </View>
-
-              {/* Price & Unit Row */}
-              <View style={styles.formRow}>
-                <View style={[styles.inputGroup, { flex: 1.2 }]}>
-                  <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                    Wholesale Price (₱):
+                {/* Wholesale Price */}
+                <View style={[styles.formRow, { borderBottomColor: colors.borderSubtle }]}>
+                  <Text style={[styles.formRowLabel, { color: colors.text, fontSize: scaleFont(15) }]}>
+                    Price (₱)
                   </Text>
                   <TextInput
                     value={formPrice}
                     onChangeText={setFormPrice}
-                    placeholder="e.g. 52.00"
+                    placeholder="e.g. 60.00"
                     placeholderTextColor={colors.textMuted}
                     keyboardType="decimal-pad"
-                    style={[
-                      styles.modalInput,
-                      { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
-                    ]}
+                    style={[styles.formRowInput, { color: colors.text, fontSize: scaleFont(15) }]}
                   />
                 </View>
 
-                <View style={[styles.inputGroup, { flex: 1 }]}>
-                  <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                    Unit:
+                {/* Unit */}
+                <View style={styles.formRow}>
+                  <Text style={[styles.formRowLabel, { color: colors.text, fontSize: scaleFont(15) }]}>
+                    Unit
                   </Text>
                   <TextInput
                     value={formUnit}
                     onChangeText={setFormUnit}
-                    placeholder="kg, sack, tray"
+                    placeholder="kg, bundle, tali, sack"
                     placeholderTextColor={colors.textMuted}
-                    style={[
-                      styles.modalInput,
-                      { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(16) }
-                    ]}
+                    style={[styles.formRowInput, { color: colors.text, fontSize: scaleFont(15) }]}
                   />
                 </View>
               </View>
 
-              {/* Category Selector */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                  Category:
-                </Text>
-                <FlatList
-                  horizontal
-                  data={CATEGORIES.filter(c => c !== 'All Vegetables')}
-                  keyExtractor={c => c}
-                  showsHorizontalScrollIndicator={false}
-                  renderItem={({ item: cat }) => {
-                    const isCatSelected = formCategory === cat;
-                    return (
-                      <TouchableOpacity
-                        onPress={() => setFormCategory(cat)}
-                        style={[
-                          styles.catChoiceChip,
-                          {
-                            backgroundColor: isCatSelected ? colors.primary : colors.card,
-                            borderColor: isCatSelected ? colors.primary : colors.border
-                          }
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.catChoiceText,
-                            {
-                              color: isCatSelected ? colors.primaryText : colors.text,
-                              fontSize: scaleFont(13),
-                              fontWeight: isCatSelected ? '700' : '500'
-                            }
-                          ]}
-                        >
-                          {cat}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  }}
-                />
+              {/* Category Selection */}
+              <Text style={[styles.sheetSectionTitle, { color: colors.textSecondary, fontSize: scaleFont(12), marginTop: 14 }]}>
+                CATEGORY
+              </Text>
+              <View style={styles.categoryWrapRow}>
+                {CATEGORIES.map((cat, idx) => (
+                  <TouchableOpacity
+                    key={idx}
+                    onPress={() => {
+                      triggerHapticFeedback('light');
+                      setFormCategory(cat);
+                    }}
+                    style={[
+                      styles.categoryOptionChip,
+                      formCategory === cat
+                        ? { backgroundColor: colors.primaryLight, borderColor: colors.primary }
+                        : { backgroundColor: colors.card, borderColor: colors.borderSubtle }
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryOptionText,
+                        {
+                          color: formCategory === cat ? colors.primary : colors.text,
+                          fontSize: scaleFont(12),
+                          fontWeight: formCategory === cat ? '800' : '600'
+                        }
+                      ]}
+                    >
+                      {cat}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
 
-              {/* Supplier */}
-              <View style={styles.inputGroup}>
-                <Text style={[styles.inputLabel, { color: colors.text, fontSize: scaleFont(14) }]}>
-                  Wholesale Supplier / Bagsakan (Optional):
-                </Text>
-                <TextInput
-                  value={formSupplier}
-                  onChangeText={setFormSupplier}
-                  placeholder="e.g. Divisoria, Balintawak, or Pasig Market"
-                  placeholderTextColor={colors.textMuted}
-                  style={[
-                    styles.modalInput,
-                    { backgroundColor: colors.card, color: colors.text, borderColor: colors.border, fontSize: scaleFont(15) }
-                  ]}
-                />
+              {/* Emoji Icon Grid */}
+              <Text style={[styles.sheetSectionTitle, { color: colors.textSecondary, fontSize: scaleFont(12), marginTop: 14 }]}>
+                EMOJI ICON
+              </Text>
+              <View style={[styles.insetGroupedCard, { backgroundColor: colors.card, borderColor: colors.borderSubtle }]}>
+                <View style={styles.iconGrid}>
+                  {PRESET_ICONS.slice(0, 16).map((icon, idx) => (
+                    <TouchableOpacity
+                      key={idx}
+                      onPress={() => {
+                        triggerHapticFeedback('light');
+                        setFormIcon(icon);
+                      }}
+                      style={[
+                        styles.iconTile,
+                        formIcon === icon && [styles.iconTileSelected, { borderColor: colors.primary, backgroundColor: colors.primaryLight }]
+                      ]}
+                    >
+                      <Text style={{ fontSize: scaleFont(22) }}>{icon}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
 
-              {/* Delete item button if editing an existing item */}
+              {/* Delete Button (If editing existing item) */}
               {editingItem && (
                 <TouchableOpacity
-                  onPress={() => {
-                    setIsModalOpen(false);
-                    handleDeleteItem(editingItem);
-                  }}
-                  style={[styles.modalDeleteBtn, { backgroundColor: colors.dangerSurface, borderColor: colors.danger }]}
+                  onPress={() => handleDeleteItem(editingItem)}
+                  style={[styles.deleteItemBtn, { backgroundColor: colors.dangerSurface, borderColor: colors.danger }]}
                   accessibilityRole="button"
                   accessibilityLabel={`Delete ${editingItem.name} from catalog`}
                 >
-                  <Ionicons name="trash-outline" size={scaleFont(18)} color={colors.danger} style={{ marginRight: 6 }} />
-                  <Text style={[styles.modalDeleteText, { color: colors.danger, fontSize: scaleFont(15) }]}>
-                    Delete Item from Inventory
+                  <Ionicons name="trash-outline" size={scaleFont(16)} color={colors.danger} style={{ marginRight: 6 }} />
+                  <Text style={[styles.deleteItemBtnText, { color: colors.danger, fontSize: scaleFont(14) }]}>
+                    Delete "{editingItem.name}" from Catalog
                   </Text>
                 </TouchableOpacity>
               )}
-
-              {/* Modal Action Buttons */}
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  onPress={() => setIsModalOpen(false)}
-                  style={[styles.modalActionBtn, styles.modalCancelBtn, { borderColor: colors.border }]}
-                >
-                  <Text style={[styles.modalCancelText, { color: colors.text, fontSize: scaleFont(16) }]}>
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleSaveItem}
-                  style={[styles.modalActionBtn, { backgroundColor: colors.primary }]}
-                >
-                  <Text style={[styles.modalSaveText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
-                    Save Item
-                  </Text>
-                </TouchableOpacity>
-              </View>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
@@ -870,306 +864,387 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
 };
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
-  searchContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
+  screen: {
+    flex: 1
+  },
+  searchFilterContainer: {
+    paddingTop: 8,
     paddingBottom: 8,
-    borderBottomWidth: 1.5
+    borderBottomWidth: StyleSheet.hairlineWidth
   },
-  searchBar: {
+  searchBarRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 16,
-    borderWidth: 1.5,
-    paddingHorizontal: 12,
-    minHeight: 52
-  },
-  searchIcon: { marginRight: 8 },
-  searchInput: { flex: 1, fontWeight: '700', paddingVertical: 8 },
-  clearSearchBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  toggleViewBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 6
-  },
-  categoryChipsList: { paddingVertical: 10, gap: 8 },
-  catChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 22,
-    minHeight: 46,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  catChipText: {},
-  subHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 10
+    gap: 8,
+    marginBottom: 8
   },
-  countText: { fontWeight: '700' },
-  subHeaderActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
-  resetDefaultsBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  addNewItemBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
-    minHeight: 46
-  },
-  addNewItemText: { fontWeight: '800', marginLeft: 4 },
-  listContent: { paddingHorizontal: 14, paddingBottom: 90, gap: 12 },
-  gridRow: {
-    justifyContent: 'space-between',
-    gap: 12
-  },
-  gridTile: {
+  iosSearchBar: {
     flex: 1,
-    borderRadius: 22,
-    borderWidth: 1.5,
-    padding: 12,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    minHeight: 44
   },
-  gridImageWrapper: {
-    height: 100,
-    borderRadius: 16,
+  searchIcon: {
+    marginRight: 6
+  },
+  searchInput: {
+    flex: 1,
+    padding: 0
+  },
+  toolBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     borderWidth: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden',
-    position: 'relative'
-  },
-  tilePhoto: {
-    width: '100%',
-    height: '100%'
-  },
-  tileEmoji: {
-    fontSize: 44
-  },
-  tileBadge: {
-    position: 'absolute',
-    top: 6,
-    right: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    borderWidth: 1.5
-  },
-  tileBadgeText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 11
-  },
-  gridInfoBox: {
-    marginTop: 8,
-    minHeight: 56,
-    flexGrow: 1
-  },
-  gridCategoryEyebrow: {
-    fontWeight: '800',
-    letterSpacing: 0.6,
-    marginBottom: 2
-  },
-  gridItemName: {
-    fontWeight: '800'
-  },
-  gridPriceRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-    marginTop: 4
-  },
-  gridPrice: {
-    fontWeight: '900'
-  },
-  gridUnit: {
-    marginLeft: 3,
-    fontWeight: '600'
-  },
-  gridActionsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.06)'
-  },
-  gridIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    alignItems: 'center',
     justifyContent: 'center'
   },
-  gridAddBtn: {
+  categoryScrollContent: {
+    paddingHorizontal: 16,
+    gap: 6,
+    paddingVertical: 2
+  },
+  categoryPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1
+  },
+  categoryPillText: {
+    letterSpacing: -0.2
+  },
+  listContainer: {
+    paddingBottom: 32
+  },
+  gridListContainer: {
+    paddingHorizontal: 12,
+    paddingTop: 12
+  },
+  rowListContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 12
+  },
+  /* Double-Bezel Concentric Card Architecture */
+  gridTile: {
     flex: 1,
-    minWidth: 54,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: 10,
-    minHeight: 36,
-    gap: 4
-  },
-  gridAddText: {
-    fontWeight: '800'
-  },
-  itemCard: {
-    borderRadius: 20,
-    borderWidth: 1.5,
-    padding: 14,
+    margin: 4,
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 8,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 2
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10
-  },
-  listVisualBox: {
-    width: 52,
-    height: 52,
+  gridImageWrapper: {
+    width: '100%',
+    aspectRatio: 1.15,
     borderRadius: 12,
-    borderWidth: 1.5,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 10,
+    position: 'relative',
     overflow: 'hidden'
   },
-  listImage: {
+  gridImage: {
     width: '100%',
     height: '100%'
   },
-  cardInfo: { flex: 1, minWidth: 140, paddingRight: 8 },
-  itemCategoryBadge: { fontWeight: '800', letterSpacing: 0.5, marginBottom: 2 },
-  itemName: { fontWeight: '800' },
-  itemNotes: { marginTop: 2 },
-  priceColumn: { alignItems: 'flex-end', minWidth: 80 },
-  priceTag: { fontWeight: '900' },
-  unitSub: { marginTop: 2, fontWeight: '600' },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.06)'
+  gridEmoji: {
+    textAlign: 'center'
   },
-  smallBtn: {
-    flexDirection: 'row',
+  editIconBadge: {
+    position: 'absolute',
+    top: 6,
+    left: 6,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1,
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    minHeight: 46,
-    gap: 4
-  },
-  smallBtnText: { fontWeight: '700' },
-  addToReceiptBtn: {
-    flex: 1,
-    minWidth: 140,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
-    minHeight: 46
-  },
-  addToReceiptText: { fontWeight: '800' },
-  emptyState: { alignItems: 'center', paddingVertical: 40, paddingHorizontal: 20 },
-  emptyStateTitle: { fontWeight: '800', marginTop: 10 },
-  emptyStateDesc: { textAlign: 'center', marginTop: 6, marginBottom: 16 },
-  emptyAddBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 12,
-    minHeight: 48,
     justifyContent: 'center'
   },
-  emptyAddBtnText: { fontWeight: '800' },
-  floatingCartPill: {
+  gridCartBadge: {
     position: 'absolute',
-    bottom: 16,
-    left: 20,
-    right: 20,
+    top: 6,
+    right: 6,
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6
+  },
+  gridCartBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900'
+  },
+  gridCardContent: {
+    paddingTop: 8,
+    paddingHorizontal: 2
+  },
+  gridCategoryEyebrow: {
+    fontWeight: '800',
+    letterSpacing: 0.5,
+    marginBottom: 2
+  },
+  gridItemName: {
+    fontWeight: '800',
+    minHeight: 38,
+    letterSpacing: -0.2
+  },
+  gridPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: 4,
+    gap: 2
+  },
+  gridPriceText: {
+    fontWeight: '900'
+  },
+  gridUnitText: {
+    fontWeight: '500'
+  },
+  gridActionArea: {
+    marginTop: 8
+  },
+  gridAddBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 22,
-    borderRadius: 28,
-    borderWidth: 1.5,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
-    elevation: 8
+    paddingVertical: 8,
+    borderRadius: 10,
+    minHeight: 38
   },
-  floatingCartText: { color: '#FFFFFF', fontWeight: '900' },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'center',
+  gridAddBtnText: {
+    fontWeight: '800'
+  },
+  gridStepperBox: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.65)',
-    padding: 16
+    justifyContent: 'space-between',
+    borderRadius: 10,
+    borderWidth: 1.2,
+    minHeight: 38,
+    paddingHorizontal: 6
   },
-  modalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
+  gridStepperBtn: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  modalCard: {
+  gridStepperQty: {
+    fontWeight: '900'
+  },
+  /* Inset Grouped List Row */
+  listRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 8,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+    gap: 12
+  },
+  listVisualBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative'
+  },
+  listImage: {
     width: '100%',
-    maxWidth: 440,
-    maxHeight: '90%',
-    borderRadius: 24,
-    borderWidth: 1.5,
-    padding: 20
+    height: '100%',
+    borderRadius: 11
   },
-  modalTitle: { fontWeight: '800' },
-  modalSub: { marginTop: 4, marginBottom: 12 },
-  imageSelectorRow: {
+  listBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4
+  },
+  listBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900'
+  },
+  listInfoCol: {
+    flex: 1
+  },
+  listCategoryEyebrow: {
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  listItemName: {
+    fontWeight: '800',
+    marginTop: 1
+  },
+  listPriceText: {
+    fontWeight: '600',
+    marginTop: 2
+  },
+  listActionArea: {
+    minWidth: 90
+  },
+  listAddBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    justifyContent: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    minHeight: 38
+  },
+  listAddBtnText: {
+    fontWeight: '800'
+  },
+  listStepperBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 10,
+    borderWidth: 1.2,
+    minHeight: 38,
+    paddingHorizontal: 4
+  },
+  listStepperBtn: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  listStepperQty: {
+    fontWeight: '900'
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32
+  },
+  emptyTitle: {
+    fontWeight: '800',
+    marginBottom: 6
+  },
+  emptySubtitle: {
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16
+  },
+  addNewItemBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    borderRadius: 14,
+    minHeight: 46
+  },
+  addNewItemBtnText: {
+    fontWeight: '800'
+  },
+  catalogFooter: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 10
+  },
+  catalogFooterCount: {
+    fontWeight: '600'
+  },
+  resetDefaultsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    borderWidth: 1
+  },
+  resetDefaultsText: {
+    fontWeight: '600'
+  },
+  /* Form Sheet Styling */
+  sheetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end'
+  },
+  sheetBackdrop: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0,0,0,0.4)'
+  },
+  sheetCard: {
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    borderTopWidth: 1,
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    maxHeight: '90%',
+    paddingBottom: Platform.OS === 'ios' ? 24 : 16
+  },
+  sheetGrabberContainer: {
+    alignItems: 'center',
+    paddingVertical: 8
+  },
+  sheetGrabber: {
+    width: 36,
+    height: 5,
+    borderRadius: 2.5
+  },
+  sheetNavBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth
+  },
+  sheetNavBtn: {
+    minWidth: 64,
+    minHeight: 40,
+    justifyContent: 'center'
+  },
+  sheetNavBtnText: {
+    fontWeight: '600'
+  },
+  sheetNavBtnBold: {
+    fontWeight: '800',
+    textAlign: 'right'
+  },
+  sheetNavTitle: {
+    fontWeight: '700'
+  },
+  sheetContentContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 14
+  },
+  photoChamberRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
     marginBottom: 8
   },
-  photoPreviewBox: {
-    width: 68,
-    height: 68,
-    borderRadius: 14,
-    borderWidth: 2,
+  formPhotoPreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 16,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden'
@@ -1178,80 +1253,96 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%'
   },
-  photoActions: {
+  photoActionsCol: {
     flex: 1,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8
+    gap: 6
   },
-  photoBtn: {
+  photoActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    paddingHorizontal: 10,
     borderRadius: 10,
-    borderWidth: 1.5,
-    minHeight: 40,
-    gap: 4
+    borderWidth: 1,
+    minHeight: 38
   },
-  photoBtnText: {
+  photoActionText: {
     fontWeight: '700'
   },
-  iconScrollRow: {
-    flexDirection: 'row',
-    marginBottom: 12
+  removePhotoBtn: {
+    paddingVertical: 4
   },
-  iconPickTile: {
+  removePhotoText: {
+    fontWeight: '600'
+  },
+  sheetSectionTitle: {
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+    marginLeft: 4
+  },
+  insetGroupedCard: {
+    borderRadius: 14,
+    borderWidth: 1,
+    overflow: 'hidden'
+  },
+  formRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 48
+  },
+  formRowLabel: {
+    width: 80,
+    fontWeight: '600'
+  },
+  formRowInput: {
+    flex: 1,
+    padding: 0
+  },
+  categoryWrapRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6
+  },
+  categoryOptionChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    borderWidth: 1
+  },
+  categoryOptionText: {
+    letterSpacing: -0.2
+  },
+  iconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 8,
+    gap: 8,
+    justifyContent: 'space-between'
+  },
+  iconTile: {
     width: 44,
     height: 44,
     borderRadius: 10,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 6
-  },
-  inputGroup: { marginBottom: 12 },
-  formRow: { flexDirection: 'row', gap: 10 },
-  inputLabel: { fontWeight: '700', marginBottom: 6 },
-  modalInput: {
-    borderWidth: 2,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    minHeight: 50,
-    fontWeight: '700'
-  },
-  catChoiceChip: {
-    borderWidth: 1.5,
-    borderRadius: 14,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 6
-  },
-  catChoiceText: {},
-  modalDeleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    minHeight: 50,
-    marginTop: 8
-  },
-  modalDeleteText: {
-    fontWeight: '800'
-  },
-  modalActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 14 },
-  modalActionBtn: {
-    flex: 1,
-    minWidth: 120,
-    minHeight: 52,
-    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  modalCancelBtn: { borderWidth: 2 },
-  modalCancelText: { fontWeight: '700' },
-  modalSaveText: { fontWeight: '800' }
+  iconTileSelected: {
+    borderWidth: 2
+  },
+  deleteItemBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 20,
+    minHeight: 46
+  },
+  deleteItemBtnText: {
+    fontWeight: '700'
+  }
 });
