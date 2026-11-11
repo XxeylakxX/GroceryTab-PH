@@ -10,7 +10,7 @@ export interface BuildInfo {
 
 export const BUILD_INFO: BuildInfo = {
   version: '1.0.0',
-  commitHash: '5fb7858',
-  commitCount: 16,
+  commitHash: 'ed35df7',
+  commitCount: 17,
   commitDate: '2026-11-11'
 };
