@@ -16,12 +16,14 @@ import { DictionaryScreen } from './src/screens/DictionaryScreen';
 import { HistoryScreen } from './src/screens/HistoryScreen';
 import { AccessibilityModal } from './src/components/AccessibilityModal';
 import { HelpModal } from './src/components/HelpModal';
+import { AboutModal } from './src/components/AboutModal';
 
 type ActiveTab = 'receipt' | 'dictionary' | 'history';
 
 const MainAppLayout: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('receipt');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
   const insets = useSafeAreaInsets();
   const { colors, theme, scaleFont, openAccessibilityModal, triggerHapticFeedback } = useAppTheme();
   const { cartItems, receipts } = useApp();
@@ -71,8 +73,17 @@ const MainAppLayout: React.FC = () => {
       >
         {/* Navigation Top Row: Brand & Actions */}
         <View style={styles.navTopRow}>
-          {/* Brand Mark */}
-          <View style={styles.brandRow}>
+          {/* Brand Mark: Tap to open About & Build Info */}
+          <TouchableOpacity
+            onPress={() => {
+              triggerHapticFeedback('light');
+              setIsAboutOpen(true);
+            }}
+            style={styles.brandRow}
+            accessibilityRole="button"
+            accessibilityLabel="About GroceryTab PH: tap to view app version and build info"
+            activeOpacity={0.7}
+          >
             <View style={[styles.brandIconShell, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderSubtle }]}>
               <View style={[styles.brandIconInner, { backgroundColor: colors.primary }]}>
                 <Ionicons name="storefront" size={scaleFont(18)} color={colors.primaryText} />
@@ -95,10 +106,26 @@ const MainAppLayout: React.FC = () => {
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
 
-          {/* Right Bar Buttons: Help & Accessibility (48x48dp minimum targets) */}
+          {/* Right Bar Buttons: About, Help & Accessibility (48x48dp minimum targets) */}
           <View style={styles.navBarActions}>
+            <TouchableOpacity
+              onPress={() => {
+                triggerHapticFeedback('light');
+                setIsAboutOpen(true);
+              }}
+              style={[
+                styles.navBarBtn,
+                { backgroundColor: colors.surfaceHighlight, borderColor: colors.cardBorder }
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="About GroceryTab PH: view version and build number"
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <Ionicons name="information-circle-outline" size={scaleFont(22)} color={colors.text} />
+            </TouchableOpacity>
+
             <TouchableOpacity
               onPress={() => {
                 triggerHapticFeedback('light');
@@ -313,7 +340,15 @@ const MainAppLayout: React.FC = () => {
 
       {/* Global Modals */}
       <AccessibilityModal />
-      <HelpModal visible={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+      <HelpModal
+        visible={isHelpOpen}
+        onClose={() => setIsHelpOpen(false)}
+        onOpenAbout={() => setIsAboutOpen(true)}
+      />
+      <AboutModal
+        visible={isAboutOpen}
+        onClose={() => setIsAboutOpen(false)}
+      />
     </View>
   );
 };

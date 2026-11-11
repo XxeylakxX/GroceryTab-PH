@@ -9,20 +9,29 @@ import {
   Pressable
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { useAppTheme } from '../context/ThemeContext';
 
 interface HelpModalProps {
   visible: boolean;
   onClose: () => void;
+  onOpenAbout?: () => void;
 }
 
-export const HelpModal: React.FC<HelpModalProps> = ({ visible, onClose }) => {
+export const HelpModal: React.FC<HelpModalProps> = ({ visible, onClose, onOpenAbout }) => {
   const { colors, scaleFont, triggerHapticFeedback } = useAppTheme();
 
   const handleClose = () => {
     triggerHapticFeedback('light');
     onClose();
   };
+
+  const appVersion = Constants.expoConfig?.version || '1.0.0';
+  const buildNumber =
+    Constants.expoConfig?.ios?.buildNumber ||
+    Constants.expoConfig?.android?.versionCode?.toString() ||
+    Constants.nativeBuildVersion ||
+    '1';
 
   return (
     <Modal
@@ -174,6 +183,49 @@ export const HelpModal: React.FC<HelpModalProps> = ({ visible, onClose }) => {
               </View>
             </View>
 
+            {/* Section 5: About & App Build Info */}
+            <View style={[styles.guideCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+              <View style={styles.guideCardHeader}>
+                <Text style={{ fontSize: scaleFont(26), marginRight: 10 }}>ℹ️</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.guideCardTitle, { color: colors.text, fontSize: scaleFont(17) }]}>
+                    5. About & App Build
+                  </Text>
+                  <Text style={[styles.guideText, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
+                    Version {appVersion} • Build {buildNumber}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.bulletList}>
+                <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  • <Text style={{ fontWeight: '800' }}>App Version:</Text> {appVersion}
+                </Text>
+                <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  • <Text style={{ fontWeight: '800' }}>Build Number:</Text> #{buildNumber}
+                </Text>
+                <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  • <Text style={{ fontWeight: '800' }}>Bundle ID:</Text> ph.grocerytab.app
+                </Text>
+                <Text style={[styles.bulletItem, { color: colors.text, fontSize: scaleFont(14) }]}>
+                  • <Text style={{ fontWeight: '800' }}>Environment:</Text> iOS 18+ Standalone / Sideload
+                </Text>
+              </View>
+              {onOpenAbout && (
+                <TouchableOpacity
+                  onPress={() => {
+                    handleClose();
+                    onOpenAbout();
+                  }}
+                  style={[styles.viewFullAboutBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderSubtle }]}
+                >
+                  <Ionicons name="information-circle-outline" size={scaleFont(16)} color={colors.primary} style={{ marginRight: 6 }} />
+                  <Text style={[styles.viewFullAboutText, { color: colors.primary, fontSize: scaleFont(13) }]}>
+                    View Full About & Specifications
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
             {/* Done Button */}
             <TouchableOpacity
               onPress={handleClose}
@@ -304,5 +356,18 @@ const styles = StyleSheet.create({
   },
   doneButtonText: {
     fontWeight: '800'
+  },
+  viewFullAboutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 12,
+    minHeight: 44
+  },
+  viewFullAboutText: {
+    fontWeight: '700'
   }
 });
