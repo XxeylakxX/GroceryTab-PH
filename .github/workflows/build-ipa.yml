@@ -11,6 +11,16 @@ on:
         options:
           - Release
           - Debug
+      create_release:
+        description: 'Publish a GitHub Release with the IPA'
+        required: true
+        default: true
+        type: boolean
+      tag_name:
+        description: 'Release Tag Name (e.g. v1.0.0)'
+        required: false
+        default: 'v1.0.0'
+        type: string
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -21,6 +31,8 @@ jobs:
     name: Build & Package Unsigned IPA
     runs-on: macos-latest
     timeout-minutes: 45
+    permissions:
+      contents: write
 
     steps:
       - name: 📥 Checkout Repository
@@ -139,3 +151,24 @@ jobs:
           path: GroceryTab.ipa
           if-no-files-found: error
           retention-days: 14
+
+      - name: 🚀 Publish GitHub Release with Sideloadable IPA
+        if: ${{ inputs.create_release != false }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: GroceryTab.ipa
+          tag_name: ${{ inputs.tag_name != '' && inputs.tag_name || format('v1.0.0-b{0}', github.run_number) }}
+          name: ${{ inputs.tag_name != '' && format('GroceryTab PH iOS {0}', inputs.tag_name) || format('GroceryTab PH iOS v1.0.0 (Build {0})', github.run_number) }}
+          body: |
+            ### 🛒 GroceryTab PH - Unsigned iOS Sideloadable Build
+            - **Commit**: `${{ github.sha }}`
+            - **Configuration**: `${{ inputs.configuration || 'Release' }}`
+            - **File**: `GroceryTab.ipa`
+
+            #### 📲 Sideloading Instructions (No $99 Apple Developer Account required):
+            1. Download `GroceryTab.ipa` below.
+            2. Connect your iPhone to your Mac/PC using a USB cable.
+            3. Open **Sideloadly**, **AltStore**, or **TrollStore** and drag `GroceryTab.ipa` to install.
+            4. On iOS 16+, go to **Settings > Privacy & Security > Developer Mode** and turn it **ON** if prompted.
+          draft: false
+          prerelease: false
