@@ -236,16 +236,31 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
     );
   };
 
-  // Render Visual Grid Tile (Picture / Icon First)
+  // Render Visual Grid Tile (Picture / Icon First with Double-Bezel Architecture)
   const renderGridCard = ({ item }: { item: CatalogItem }) => {
     const qtyInCart = cartItemCounts.get(item.id) || cartItemCounts.get(item.name.toLowerCase().trim()) || 0;
 
     return (
-      <View style={[styles.gridTile, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
-        {/* Large Visual Picture / Icon Container */}
+      <View
+        style={[
+          styles.gridTile,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.cardBorder,
+            shadowColor: colors.shadowColor
+          }
+        ]}
+      >
+        {/* Recessed Concentric Image Chamber */}
         <TouchableOpacity
           onPress={() => addToCart(item)}
-          style={[styles.gridImageWrapper, { backgroundColor: colors.surfaceHighlight }]}
+          style={[
+            styles.gridImageWrapper,
+            {
+              backgroundColor: colors.cardInner,
+              borderColor: colors.borderSubtle
+            }
+          ]}
           accessibilityRole="button"
           accessibilityLabel={`Add ${item.name} to procurement tally. Price: ${formatPHP(item.unitPrice)}`}
         >
@@ -265,6 +280,10 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
 
         {/* Item Title & Price */}
         <View style={styles.gridInfoBox}>
+          <Text style={[styles.gridCategoryEyebrow, { color: colors.primary, fontSize: scaleFont(10) }]}>
+            {item.category.toUpperCase()}
+          </Text>
+
           <Text
             style={[styles.gridItemName, { color: colors.text, fontSize: scaleFont(15) }]}
             numberOfLines={2}
@@ -286,12 +305,12 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
         <View style={styles.gridActionsRow}>
           <TouchableOpacity
             onPress={() => handleOpenEdit(item)}
-            style={[styles.gridIconBtn, { borderColor: colors.border, backgroundColor: colors.surfaceHighlight }]}
+            style={[styles.gridIconBtn, { borderColor: colors.borderSubtle, backgroundColor: colors.surfaceHighlight }]}
             accessibilityRole="button"
             accessibilityLabel={`Edit ${item.name}`}
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
-            <Ionicons name="pencil" size={scaleFont(16)} color={colors.text} />
+            <Ionicons name="pencil" size={scaleFont(15)} color={colors.text} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -301,7 +320,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
             accessibilityLabel={`Delete ${item.name} from catalog`}
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
-            <Ionicons name="trash-outline" size={scaleFont(16)} color={colors.danger} />
+            <Ionicons name="trash-outline" size={scaleFont(15)} color={colors.danger} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -313,8 +332,12 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
             accessibilityRole="button"
             accessibilityLabel={`Add ${item.name} to procurement tally`}
           >
-            <Ionicons name="add" size={scaleFont(18)} color={colors.primaryText} />
-            <Text style={[styles.gridAddText, { color: colors.primaryText, fontSize: scaleFont(13) }]}>
+            <Ionicons
+              name={qtyInCart > 0 ? 'checkmark' : 'add'}
+              size={scaleFont(16)}
+              color={colors.primaryText}
+            />
+            <Text style={[styles.gridAddText, { color: colors.primaryText, fontSize: scaleFont(12) }]}>
               {qtyInCart > 0 ? `(${qtyInCart})` : '+ Add'}
             </Text>
           </TouchableOpacity>
@@ -328,37 +351,54 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
     const qtyInCart = cartItemCounts.get(item.id) || cartItemCounts.get(item.name.toLowerCase().trim()) || 0;
 
     return (
-      <View style={[styles.itemCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+      <View
+        style={[
+          styles.itemCard,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.cardBorder,
+            shadowColor: colors.shadowColor
+          }
+        ]}
+      >
         <View style={styles.cardHeader}>
           {/* Visual Icon / Picture */}
-          <View style={[styles.listVisualBox, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}>
+          <View
+            style={[
+              styles.listVisualBox,
+              {
+                backgroundColor: colors.cardInner,
+                borderColor: colors.borderSubtle
+              }
+            ]}
+          >
             {item.imageUri ? (
               <Image source={{ uri: item.imageUri }} style={styles.listImage} resizeMode="cover" />
             ) : (
-              <Text style={{ fontSize: scaleFont(28) }}>{item.icon || '🛒'}</Text>
+              <Text style={{ fontSize: scaleFont(26) }}>{item.icon || '🛒'}</Text>
             )}
           </View>
 
           <View style={styles.cardInfo}>
-            <Text style={[styles.itemCategoryBadge, { color: colors.primary, fontSize: scaleFont(12) }]}>
+            <Text style={[styles.itemCategoryBadge, { color: colors.primary, fontSize: scaleFont(11) }]}>
               {item.category.toUpperCase()}
             </Text>
-            <Text style={[styles.itemName, { color: colors.text, fontSize: scaleFont(17) }]}>
+            <Text style={[styles.itemName, { color: colors.text, fontSize: scaleFont(16) }]}>
               {item.name}
             </Text>
             {item.supplier ? (
               <Text style={[styles.itemNotes, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
-                Supplier: {item.supplier}
+                Vendor: {item.supplier}
               </Text>
             ) : null}
           </View>
 
           {/* Unit Price */}
           <View style={styles.priceColumn}>
-            <Text style={[styles.priceTag, { color: colors.text, fontSize: scaleFont(19) }]}>
+            <Text style={[styles.priceTag, { color: colors.text, fontSize: scaleFont(18) }]}>
               {formatPHP(item.unitPrice)}
             </Text>
-            <Text style={[styles.unitSub, { color: colors.textSecondary, fontSize: scaleFont(13) }]}>
+            <Text style={[styles.unitSub, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
               per {item.unit}
             </Text>
           </View>
@@ -368,12 +408,12 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
         <View style={styles.cardFooter}>
           <TouchableOpacity
             onPress={() => handleOpenEdit(item)}
-            style={[styles.smallBtn, { borderColor: colors.border, backgroundColor: colors.surfaceHighlight }]}
+            style={[styles.smallBtn, { borderColor: colors.borderSubtle, backgroundColor: colors.surfaceHighlight }]}
             accessibilityRole="button"
             accessibilityLabel={`Edit ${item.name}`}
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
-            <Ionicons name="create-outline" size={scaleFont(18)} color={colors.text} />
+            <Ionicons name="create-outline" size={scaleFont(16)} color={colors.text} />
             <Text style={[styles.smallBtnText, { color: colors.text, fontSize: scaleFont(13) }]}>
               Edit
             </Text>
@@ -386,7 +426,7 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
             accessibilityLabel={`Delete ${item.name}`}
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
           >
-            <Ionicons name="trash-outline" size={scaleFont(18)} color={colors.danger} />
+            <Ionicons name="trash-outline" size={scaleFont(16)} color={colors.danger} />
             <Text style={[styles.smallBtnText, { color: colors.danger, fontSize: scaleFont(13) }]}>
               Delete
             </Text>
@@ -405,12 +445,12 @@ export const DictionaryScreen: React.FC<DictionaryScreenProps> = ({ onNavigateTo
           >
             <Ionicons
               name={qtyInCart > 0 ? 'checkmark-circle' : 'add-circle'}
-              size={scaleFont(20)}
+              size={scaleFont(18)}
               color={colors.primaryText}
               style={{ marginRight: 6 }}
             />
             <Text style={[styles.addToReceiptText, { color: colors.primaryText, fontSize: scaleFont(14) }]}>
-              {qtyInCart > 0 ? `On Sheet (${qtyInCart}) +` : '+ To Procurement'}
+              {qtyInCart > 0 ? `On Sheet (${qtyInCart}) +` : '+ To Sheet'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -840,8 +880,8 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 14,
-    borderWidth: 2,
+    borderRadius: 16,
+    borderWidth: 1.5,
     paddingHorizontal: 12,
     minHeight: 52
   },
@@ -851,7 +891,7 @@ const styles = StyleSheet.create({
   toggleViewBtn: {
     width: 44,
     height: 44,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -859,10 +899,10 @@ const styles = StyleSheet.create({
   },
   categoryChipsList: { paddingVertical: 10, gap: 8 },
   catChip: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
-    minHeight: 44,
+    borderRadius: 22,
+    minHeight: 46,
     justifyContent: 'center',
     alignItems: 'center'
   },
@@ -900,18 +940,18 @@ const styles = StyleSheet.create({
   },
   gridTile: {
     flex: 1,
-    borderRadius: 16,
-    borderWidth: 2,
-    padding: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderRadius: 22,
+    borderWidth: 1.5,
+    padding: 12,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3
   },
   gridImageWrapper: {
-    height: 94,
-    borderRadius: 12,
+    height: 100,
+    borderRadius: 16,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -929,19 +969,24 @@ const styles = StyleSheet.create({
     top: 6,
     right: 6,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 2
+    paddingVertical: 3,
+    borderRadius: 10,
+    borderWidth: 1.5
   },
   tileBadgeText: {
     color: '#FFFFFF',
     fontWeight: '900',
-    fontSize: 12
+    fontSize: 11
   },
   gridInfoBox: {
     marginTop: 8,
-    minHeight: 52,
+    minHeight: 56,
     flexGrow: 1
+  },
+  gridCategoryEyebrow: {
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    marginBottom: 2
   },
   gridItemName: {
     fontWeight: '800'
@@ -970,9 +1015,9 @@ const styles = StyleSheet.create({
     borderTopColor: 'rgba(0,0,0,0.06)'
   },
   gridIconBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center'
@@ -984,22 +1029,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    borderRadius: 8,
-    minHeight: 38
+    borderRadius: 10,
+    minHeight: 36,
+    gap: 4
   },
   gridAddText: {
-    fontWeight: '800',
-    marginLeft: 2
+    fontWeight: '800'
   },
   itemCard: {
-    borderRadius: 16,
-    borderWidth: 2,
+    borderRadius: 20,
+    borderWidth: 1.5,
     padding: 14,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2
   },
   cardHeader: {
     flexDirection: 'row',
@@ -1082,14 +1126,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 24,
-    borderWidth: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6
+    paddingHorizontal: 22,
+    borderRadius: 28,
+    borderWidth: 1.5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 8
   },
   floatingCartText: { color: '#FFFFFF', fontWeight: '900' },
   modalOverlay: {
@@ -1110,9 +1153,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 440,
     maxHeight: '90%',
-    borderRadius: 20,
-    borderWidth: 2,
-    padding: 18
+    borderRadius: 24,
+    borderWidth: 1.5,
+    padding: 20
   },
   modalTitle: { fontWeight: '800' },
   modalSub: { marginTop: 4, marginBottom: 12 },

@@ -70,11 +70,18 @@ export const AccessibilityModal: React.FC = () => {
           accessibilityLabel="Close Settings"
           accessibilityRole="button"
         />
-        <View style={[styles.sheetContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.sheetContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+          {/* Sheet Drag Handle */}
+          <View style={styles.dragHandleContainer}>
+            <View style={[styles.dragHandle, { backgroundColor: colors.borderSubtle }]} />
+          </View>
+
           {/* Header */}
-          <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={[styles.header, { borderBottomColor: colors.borderSubtle }]}>
             <View style={styles.headerTitleRow}>
-              <Ionicons name="eye-outline" size={scaleFont(24)} color={colors.text} />
+              <View style={[styles.headerIconBubble, { backgroundColor: colors.primaryLight }]}>
+                <Ionicons name="eye-outline" size={scaleFont(20)} color={colors.primary} />
+              </View>
               <Text
                 style={[
                   styles.headerTitle,
@@ -89,12 +96,12 @@ export const AccessibilityModal: React.FC = () => {
                 triggerHapticFeedback('light');
                 closeAccessibilityModal();
               }}
-              style={[styles.closeButton, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+              style={[styles.closeButton, { backgroundColor: colors.surfaceHighlight, borderColor: colors.cardBorder }]}
               accessibilityLabel="Close accessibility window"
               accessibilityRole="button"
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Ionicons name="close" size={26} color={colors.text} />
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
@@ -377,37 +384,53 @@ const styles = StyleSheet.create({
   },
   sheetContainer: {
     maxHeight: '90%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderWidth: 2,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1.5,
     borderBottomWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
     elevation: 10
+  },
+  dragHandleContainer: {
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 2
+  },
+  dragHandle: {
+    width: 38,
+    height: 4,
+    borderRadius: 2
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 18,
-    borderBottomWidth: 2
+    paddingVertical: 14,
+    borderBottomWidth: 1.5
   },
   headerTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10
   },
+  headerIconBubble: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   headerTitle: {
     fontWeight: '800'
   },
   closeButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -439,8 +462,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 2,
+    borderRadius: 16,
+    borderWidth: 1.5,
     minHeight: 70
   },
   viewModeBtnText: {
@@ -457,7 +480,7 @@ const styles = StyleSheet.create({
     rowGap: 8,
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     minHeight: 58
   },
   radioRow: {

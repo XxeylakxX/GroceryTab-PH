@@ -163,13 +163,15 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
         <View style={styles.topActionBar}>
           <TouchableOpacity
             onPress={onNavigateToDictionary}
-            style={[styles.actionChip, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+            style={[styles.actionChip, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
             accessibilityRole="button"
             accessibilityLabel="Pick items from Inventory Catalog"
           >
-            <Ionicons name="apps-outline" size={scaleFont(18)} color={colors.text} />
+            <View style={[styles.chipIconBox, { backgroundColor: colors.surfaceHighlight }]}>
+              <Ionicons name="apps" size={scaleFont(16)} color={colors.primary} />
+            </View>
             <Text style={[styles.actionChipText, { color: colors.text, fontSize: scaleFont(14) }]}>
-              + Pick from Catalog
+              Pick from Catalog
             </Text>
           </TouchableOpacity>
 
@@ -178,13 +180,15 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
               triggerHapticFeedback('light');
               setIsAddCustomOpen(true);
             }}
-            style={[styles.actionChip, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+            style={[styles.actionChip, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
             accessibilityRole="button"
             accessibilityLabel="Add custom unlisted item"
           >
-            <Ionicons name="add-circle-outline" size={scaleFont(18)} color={colors.text} />
+            <View style={[styles.chipIconBox, { backgroundColor: colors.surfaceHighlight }]}>
+              <Ionicons name="add" size={scaleFont(18)} color={colors.text} />
+            </View>
             <Text style={[styles.actionChipText, { color: colors.text, fontSize: scaleFont(14) }]}>
-              + Custom Item
+              Custom Item
             </Text>
           </TouchableOpacity>
 
@@ -193,12 +197,33 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
               setSupplierInput(supplierName);
               setIsSupplierModalOpen(true);
             }}
-            style={[styles.actionChip, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+            style={[
+              styles.actionChip,
+              supplierName
+                ? { backgroundColor: colors.primaryLight, borderColor: colors.primary }
+                : { backgroundColor: colors.surface, borderColor: colors.cardBorder }
+            ]}
             accessibilityRole="button"
             accessibilityLabel="Set Supplier / Market Source"
           >
-            <Ionicons name="business-outline" size={scaleFont(18)} color={colors.text} />
-            <Text style={[styles.actionChipText, { color: colors.text, fontSize: scaleFont(14) }]}>
+            <View
+              style={[
+                styles.chipIconBox,
+                { backgroundColor: supplierName ? colors.primary : colors.surfaceHighlight }
+              ]}
+            >
+              <Ionicons
+                name="business"
+                size={scaleFont(15)}
+                color={supplierName ? colors.primaryText : colors.text}
+              />
+            </View>
+            <Text
+              style={[
+                styles.actionChipText,
+                { color: supplierName ? colors.primary : colors.text, fontSize: scaleFont(14) }
+              ]}
+            >
               {supplierName ? supplierName : '+ Supplier'}
             </Text>
           </TouchableOpacity>
@@ -210,7 +235,9 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
               accessibilityRole="button"
               accessibilityLabel="Clear current procurement sheet"
             >
-              <Ionicons name="trash-outline" size={scaleFont(18)} color={colors.danger} />
+              <View style={[styles.chipIconBox, { backgroundColor: 'rgba(220, 38, 38, 0.15)' }]}>
+                <Ionicons name="trash-outline" size={scaleFont(16)} color={colors.danger} />
+              </View>
               <Text style={[styles.actionChipText, { color: colors.danger, fontSize: scaleFont(14) }]}>
                 Clear
               </Text>
@@ -225,12 +252,14 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
         >
           {cartItems.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={{ fontSize: scaleFont(52), marginBottom: 10 }}>📦</Text>
+              <View style={[styles.emptyIconCircle, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderSubtle }]}>
+                <Text style={{ fontSize: scaleFont(44) }}>🧺</Text>
+              </View>
               <Text style={[styles.emptyTitle, { color: colors.receiptText, fontSize: scaleFont(20) }]}>
                 No Items on Procurement Sheet
               </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.receiptSubtext, fontSize: scaleFont(15) }]}>
-                Tap "+ Pick from Catalog" above to select goods with pictures/icons, or tap "+ Custom Item" to add new stock.
+              <Text style={[styles.emptySubtitle, { color: colors.receiptSubtext, fontSize: scaleFont(14) }]}>
+                Pick vegetable staples from your inventory catalog, or tap "+ Custom Item" above to add new restock stock.
               </Text>
 
               <TouchableOpacity
@@ -239,23 +268,25 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
                 accessibilityRole="button"
                 accessibilityLabel="Open Inventory Catalog"
               >
-                <Ionicons name="grid-outline" size={scaleFont(20)} color={colors.primaryText} style={{ marginRight: 8 }} />
-                <Text style={[styles.browseButtonText, { color: colors.primaryText, fontSize: scaleFont(16) }]}>
+                <Text style={[styles.browseButtonText, { color: colors.primaryText, fontSize: scaleFont(15) }]}>
                   Browse Inventory Catalog
                 </Text>
+                <View style={styles.browseIconCircle}>
+                  <Ionicons name="arrow-forward" size={scaleFont(16)} color={colors.primaryText} />
+                </View>
               </TouchableOpacity>
             </View>
           ) : (
             <View>
               {/* Column Headers */}
               <View style={[styles.tableHeader, { borderBottomColor: colors.receiptBorder }]}>
-                <Text style={[styles.colHeader, { color: colors.receiptSubtext, fontSize: scaleFont(13), flex: 2.2 }]}>
-                  ITEM & ICON
+                <Text style={[styles.colHeader, { color: colors.receiptSubtext, fontSize: scaleFont(12), flex: 2.2 }]}>
+                  ITEM & SPECIFICATION
                 </Text>
                 <Text
                   style={[
                     styles.colHeader,
-                    { color: colors.receiptSubtext, fontSize: scaleFont(13), flex: 1.3, textAlign: 'right' }
+                    { color: colors.receiptSubtext, fontSize: scaleFont(12), flex: 1.3, textAlign: 'right' }
                   ]}
                 >
                   COST (₱)
@@ -277,13 +308,13 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
 
               {/* Calculations Section (NO DISCOUNTS) */}
               <View style={styles.summarySection}>
-                {/* Total Procurement Cost */}
-                <View style={styles.finalTotalRow}>
+                {/* Total Procurement Cost Ledger Row */}
+                <View style={[styles.finalTotalRow, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderSubtle }]}>
                   <View>
-                    <Text style={[styles.finalTotalLabel, { color: colors.receiptText, fontSize: scaleFont(17) }]}>
+                    <Text style={[styles.finalTotalLabel, { color: colors.receiptText, fontSize: scaleFont(16) }]}>
                       TOTAL PROCUREMENT:
                     </Text>
-                    <Text style={[styles.finalTotalSub, { color: colors.receiptSubtext, fontSize: scaleFont(13) }]}>
+                    <Text style={[styles.finalTotalSub, { color: colors.receiptSubtext, fontSize: scaleFont(12) }]}>
                       {cartItems.length} {cartItems.length === 1 ? 'item line' : 'item lines to restock'}
                     </Text>
                   </View>
@@ -293,7 +324,7 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
                 </View>
 
                 {/* Cash Paid to Supplier & Change Calculator */}
-                <View style={[styles.cashCalculatorCard, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}>
+                <View style={[styles.cashCalculatorCard, { backgroundColor: colors.cardInner, borderColor: colors.cardBorder }]}>
                   <View style={styles.cashHeaderRow}>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.cashCardTitle, { color: colors.text, fontSize: scaleFont(14) }]}>
@@ -313,6 +344,7 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
                       accessibilityRole="button"
                       accessibilityLabel="Enter cash handed to supplier"
                     >
+                      <Ionicons name="cash-outline" size={scaleFont(15)} color={colors.primaryText} style={{ marginRight: 4 }} />
                       <Text style={[styles.enterCashBtnText, { color: colors.primaryText, fontSize: scaleFont(13) }]}>
                         {cashPaid > 0 ? 'Edit Cash' : '+ Enter Cash'}
                       </Text>
@@ -371,18 +403,27 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
           <View style={styles.bottomButtonsContainer}>
             <TouchableOpacity
               onPress={handleFinalize}
-              style={[styles.finalizeButton, { backgroundColor: colors.primary, borderColor: colors.border }]}
+              style={[
+                styles.finalizeButton,
+                {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.cardBorder,
+                  shadowColor: colors.shadowColor
+                }
+              ]}
               accessibilityRole="button"
               accessibilityLabel={`Save and record procurement. Total: ${formatPHP(totalProcurement)}`}
             >
-              <Ionicons name="checkmark-done-circle" size={scaleFont(26)} color={colors.primaryText} style={{ marginRight: 10 }} />
-              <View>
+              <View style={styles.finalizeTextCol}>
                 <Text style={[styles.finalizeButtonText, { color: colors.primaryText, fontSize: scaleFont(18) }]}>
                   Save & Record Procurement
                 </Text>
-                <Text style={[styles.finalizeSubtext, { color: colors.primaryText, fontSize: scaleFont(13) }]}>
+                <Text style={[styles.finalizeSubtext, { color: colors.primaryText, fontSize: scaleFont(12) }]}>
                   Total Cost: {formatPHP(totalProcurement)} • Remembers Latest Prices
                 </Text>
+              </View>
+              <View style={[styles.finalizeIconBubble, { backgroundColor: 'rgba(255,255,255,0.22)' }]}>
+                <Ionicons name="checkmark-sharp" size={scaleFont(22)} color={colors.primaryText} />
               </View>
             </TouchableOpacity>
           </View>
@@ -606,17 +647,33 @@ export const ReceiptScreen: React.FC<ReceiptScreenProps> = ({
                 Quick Philippine Banknotes:
               </Text>
               <View style={styles.quickBillsGrid}>
-                {[500, 1000, 2000, 5000].map(bill => (
-                  <TouchableOpacity
-                    key={bill}
-                    onPress={() => setCashInput(bill.toString())}
-                    style={[styles.quickBillBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
-                  >
-                    <Text style={[styles.quickBillBtnText, { color: colors.text, fontSize: scaleFont(14) }]}>
-                      ₱{bill.toLocaleString()}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
+                {[500, 1000, 2000, 5000].map(bill => {
+                  const isSelected = cashInput === bill.toString();
+                  return (
+                    <TouchableOpacity
+                      key={bill}
+                      onPress={() => {
+                        triggerHapticFeedback('light');
+                        setCashInput(bill.toString());
+                      }}
+                      style={[
+                        styles.quickBillBtn,
+                        isSelected
+                          ? { backgroundColor: colors.primaryLight, borderColor: colors.primary }
+                          : { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderSubtle }
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.quickBillBtnText,
+                          { color: isSelected ? colors.primary : colors.text, fontSize: scaleFont(14) }
+                        ]}
+                      >
+                        ₱{bill.toLocaleString()}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
 
               <View style={styles.modalBtnRow}>
@@ -652,7 +709,7 @@ const styles = StyleSheet.create({
   topActionBar: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 8,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 6
@@ -660,41 +717,67 @@ const styles = StyleSheet.create({
   actionChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    borderWidth: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
     minHeight: 48
   },
+  chipIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8
+  },
   actionChipText: {
-    fontWeight: '700',
-    marginLeft: 6
+    fontWeight: '800'
   },
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: 36,
     paddingHorizontal: 20
   },
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12
+  },
   emptyTitle: {
-    fontWeight: '800',
-    marginTop: 8
+    fontWeight: '900',
+    marginTop: 4
   },
   emptySubtitle: {
     textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 22
+    marginTop: 6,
+    lineHeight: 20
   },
   browseButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 22,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-    borderRadius: 14,
-    minHeight: 52
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingLeft: 20,
+    paddingRight: 14,
+    borderRadius: 16,
+    minHeight: 52,
+    gap: 10
   },
   browseButtonText: {
     fontWeight: '800'
+  },
+  browseIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   tableHeader: {
     flexDirection: 'row',
@@ -708,7 +791,7 @@ const styles = StyleSheet.create({
   },
   summarySection: {
     marginTop: 14,
-    paddingTop: 10
+    paddingTop: 6
   },
   summaryRow: {
     flexDirection: 'row',
@@ -731,7 +814,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexWrap: 'wrap',
     rowGap: 6,
-    paddingVertical: 4
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1.5
   },
   finalTotalLabel: {
     fontWeight: '900',
@@ -745,10 +830,10 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
   cashCalculatorCard: {
-    marginTop: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    padding: 12
+    marginTop: 14,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    padding: 14
   },
   cashHeaderRow: {
     flexDirection: 'row',
@@ -758,19 +843,20 @@ const styles = StyleSheet.create({
     rowGap: 8
   },
   cashCardTitle: {
-    fontWeight: '800',
+    fontWeight: '900',
     letterSpacing: 0.5
   },
   cashCardSub: {
     marginTop: 2
   },
   enterCashBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 8,
-    minHeight: 48,
-    justifyContent: 'center',
-    alignItems: 'center'
+    borderRadius: 10,
+    minHeight: 46,
+    justifyContent: 'center'
   },
   enterCashBtnText: {
     fontWeight: '800'
@@ -788,19 +874,30 @@ const styles = StyleSheet.create({
   finalizeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     flexWrap: 'wrap',
     rowGap: 6,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 16,
-    borderWidth: 2,
-    minHeight: 64,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
+    paddingVertical: 14,
+    paddingLeft: 20,
+    paddingRight: 16,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    minHeight: 68,
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 6,
+    shadowRadius: 8,
     elevation: 4
+  },
+  finalizeTextCol: {
+    flex: 1,
+    minWidth: 180
+  },
+  finalizeIconBubble: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   finalizeButtonText: {
     fontWeight: '900'
@@ -827,9 +924,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     maxHeight: '90%',
-    borderRadius: 20,
-    borderWidth: 2,
-    padding: 18
+    borderRadius: 24,
+    borderWidth: 1.5,
+    padding: 20
   },
   modalTitle: {
     fontWeight: '800'

@@ -147,7 +147,16 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
     const { dateStr, timeStr } = formatDateTimePH(r.timestamp);
 
     return (
-      <View style={[styles.receiptCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+      <View
+        style={[
+          styles.receiptCard,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.cardBorder,
+            shadowColor: colors.shadowColor
+          }
+        ]}
+      >
         <TouchableOpacity
           onPress={() => toggleExpand(r.id)}
           style={styles.cardHeader}
@@ -156,46 +165,51 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
         >
           <View style={styles.cardHeaderLeft}>
             <View style={styles.dateRow}>
-              <Ionicons name="calendar-outline" size={scaleFont(18)} color={colors.primary} />
-              <Text style={[styles.dateText, { color: colors.text, fontSize: scaleFont(16) }]}>
+              <View style={[styles.calendarIconBubble, { backgroundColor: colors.surfaceHighlight }]}>
+                <Ionicons name="calendar-outline" size={scaleFont(15)} color={colors.primary} />
+              </View>
+              <Text style={[styles.dateText, { color: colors.text, fontSize: scaleFont(15) }]}>
                 {dateStr}
               </Text>
-              <Text style={[styles.timeText, { color: colors.textMuted, fontSize: scaleFont(14) }]}>
+              <Text style={[styles.timeText, { color: colors.textMuted, fontSize: scaleFont(13) }]}>
                 • {timeStr}
               </Text>
             </View>
 
             {r.supplierName && r.supplierName.trim() ? (
-              <Text style={[styles.supplierSubtitle, { color: colors.primary, fontSize: scaleFont(13) }]}>
-                {r.supplierName.trim()}
-              </Text>
+              <View style={[styles.supplierPill, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}>
+                <Text style={[styles.supplierSubtitle, { color: colors.primary, fontSize: scaleFont(12) }]}>
+                  Vendor: {r.supplierName.trim()}
+                </Text>
+              </View>
             ) : null}
 
             <Text style={[styles.receiptNumberText, { color: colors.textMuted, fontSize: scaleFont(12) }]}>
-              #{r.receiptNumber} • {r.items.length} {r.items.length === 1 ? 'item' : 'items'}
+              #{r.receiptNumber} • {r.items.length} {r.items.length === 1 ? 'item line' : 'item lines'}
             </Text>
           </View>
 
           <View style={styles.cardHeaderRight}>
-            <Text style={[styles.totalAmount, { color: colors.text, fontSize: scaleFont(19) }]}>
+            <Text style={[styles.totalAmount, { color: colors.primary, fontSize: scaleFont(20) }]}>
               {formatPHP(r.totalProcurement)}
             </Text>
-            <Ionicons
-              name={isExpanded ? 'chevron-up-circle' : 'chevron-down-circle'}
-              size={scaleFont(24)}
-              color={colors.primary}
-              style={{ marginTop: 2 }}
-            />
+            <View style={[styles.chevronBubble, { backgroundColor: colors.surfaceHighlight }]}>
+              <Ionicons
+                name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                size={scaleFont(18)}
+                color={colors.primary}
+              />
+            </View>
           </View>
         </TouchableOpacity>
 
         {isExpanded && (
-          <View style={[styles.expandedContent, { borderTopColor: colors.border }]}>
+          <View style={[styles.expandedContent, { borderTopColor: colors.borderSubtle }]}>
             <View style={[styles.itemizedHeader, { borderBottomColor: colors.receiptBorder }]}>
-              <Text style={[styles.itemizedColTitle, { color: colors.textSecondary, fontSize: scaleFont(12), flex: 2 }]}>
+              <Text style={[styles.itemizedColTitle, { color: colors.textSecondary, fontSize: scaleFont(11), flex: 2 }]}>
                 ITEM & QUANTITY
               </Text>
-              <Text style={[styles.itemizedColTitle, { color: colors.textSecondary, fontSize: scaleFont(12), flex: 1, textAlign: 'right' }]}>
+              <Text style={[styles.itemizedColTitle, { color: colors.textSecondary, fontSize: scaleFont(11), flex: 1, textAlign: 'right' }]}>
                 SUBTOTAL
               </Text>
             </View>
@@ -203,7 +217,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
             {r.items.map((it, idx) => (
               <View key={`${it.id}-${idx}`} style={[styles.itemizedRow, { borderBottomColor: colors.surfaceHighlight }]}>
                 <View style={styles.itemWithVisualRow}>
-                  <View style={[styles.tinyVisualBox, { backgroundColor: colors.surfaceHighlight }]}>
+                  <View style={[styles.tinyVisualBox, { backgroundColor: colors.cardInner, borderColor: colors.borderSubtle }]}>
                     {it.imageUri ? (
                       <Image source={{ uri: it.imageUri }} style={styles.tinyImage} />
                     ) : (
@@ -230,10 +244,10 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
             {/* Calculations Breakdown (NO DISCOUNTS) */}
             <View style={styles.calcSummaryBox}>
               <View style={[styles.calcRow, styles.finalCalcRow]}>
-                <Text style={[styles.finalLabel, { color: colors.text, fontSize: scaleFont(16) }]}>
+                <Text style={[styles.finalLabel, { color: colors.text, fontSize: scaleFont(15) }]}>
                   TOTAL PROCUREMENT:
                 </Text>
-                <Text style={[styles.finalVal, { color: colors.text, fontSize: scaleFont(20) }]}>
+                <Text style={[styles.finalVal, { color: colors.primary, fontSize: scaleFont(20) }]}>
                   {formatPHP(r.totalProcurement)}
                 </Text>
               </View>
@@ -253,7 +267,7 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
                       <Text style={[styles.calcLabel, { color: colors.success, fontSize: scaleFont(14), fontWeight: '700' }]}>
                         Change (Sukli) Received:
                       </Text>
-                      <Text style={[styles.calcVal, { color: colors.success, fontSize: scaleFont(16), fontWeight: '800' }]}>
+                      <Text style={[styles.calcVal, { color: colors.success, fontSize: scaleFont(16), fontWeight: '900' }]}>
                         {formatPHP(r.changeReceived)}
                       </Text>
                     </View>
@@ -266,11 +280,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
             <View style={styles.actionButtonsRow}>
               <TouchableOpacity
                 onPress={() => handleCopyReceipt(r)}
-                style={[styles.receiptActionBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+                style={[styles.receiptActionBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderSubtle }]}
                 accessibilityRole="button"
                 accessibilityLabel="Copy procurement sheet text"
               >
-                <Ionicons name="copy-outline" size={scaleFont(18)} color={colors.text} />
+                <Ionicons name="copy-outline" size={scaleFont(16)} color={colors.text} />
                 <Text style={[styles.actionBtnText, { color: colors.text, fontSize: scaleFont(13) }]}>
                   Copy
                 </Text>
@@ -278,11 +292,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
 
               <TouchableOpacity
                 onPress={() => handleShareReceipt(r)}
-                style={[styles.receiptActionBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+                style={[styles.receiptActionBtn, { backgroundColor: colors.surfaceHighlight, borderColor: colors.borderSubtle }]}
                 accessibilityRole="button"
                 accessibilityLabel="Share procurement sheet via Viber, SMS, or Messenger"
               >
-                <Ionicons name="share-social-outline" size={scaleFont(18)} color={colors.text} />
+                <Ionicons name="share-social-outline" size={scaleFont(16)} color={colors.text} />
                 <Text style={[styles.actionBtnText, { color: colors.text, fontSize: scaleFont(13) }]}>
                   Share
                 </Text>
@@ -290,11 +304,11 @@ export const HistoryScreen: React.FC<HistoryScreenProps> = ({ onNavigateToReceip
 
               <TouchableOpacity
                 onPress={() => handleReloadToCart(r)}
-                style={[styles.receiptActionBtn, { backgroundColor: colors.primary, borderColor: colors.border }]}
+                style={[styles.receiptActionBtn, { backgroundColor: colors.primary, borderColor: colors.primary }]}
                 accessibilityRole="button"
                 accessibilityLabel="Reload items into active procurement sheet"
               >
-                <Ionicons name="cart-outline" size={scaleFont(18)} color={colors.primaryText} />
+                <Ionicons name="cart-outline" size={scaleFont(16)} color={colors.primaryText} />
                 <Text style={[styles.actionBtnText, { color: colors.primaryText, fontSize: scaleFont(13) }]}>
                   Reload
                 </Text>
@@ -399,13 +413,12 @@ const styles = StyleSheet.create({
   clearAllBtnText: { fontWeight: '700' },
   listContent: { padding: 16, paddingBottom: 40, gap: 12 },
   receiptCard: {
-    borderRadius: 16,
-    borderWidth: 2,
+    borderRadius: 22,
+    borderWidth: 1.5,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 3
   },
   cardHeader: {
@@ -419,14 +432,37 @@ const styles = StyleSheet.create({
   },
   cardHeaderLeft: { flex: 1, minWidth: 160, paddingRight: 10 },
   dateRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },
+  calendarIconBubble: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 2
+  },
   dateText: { fontWeight: '800' },
   timeText: { fontWeight: '600' },
+  supplierPill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginTop: 4,
+    marginBottom: 2
+  },
   supplierSubtitle: {
-    fontWeight: '800',
-    marginTop: 3
+    fontWeight: '800'
   },
   receiptNumberText: { marginTop: 2, fontWeight: '600' },
-  cardHeaderRight: { alignItems: 'flex-end', justifyContent: 'center' },
+  cardHeaderRight: { alignItems: 'flex-end', justifyContent: 'center', gap: 4 },
+  chevronBubble: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
   totalAmount: { fontWeight: '900' },
   expandedContent: { borderTopWidth: 1.5, padding: 16, paddingTop: 12 },
   itemizedHeader: {
@@ -453,9 +489,10 @@ const styles = StyleSheet.create({
     gap: 8
   },
   tinyVisualBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden'
@@ -508,15 +545,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderRadius: 10,
-    minHeight: 48,
+    borderRadius: 12,
+    minHeight: 46,
     paddingHorizontal: 8,
     gap: 6
   },
   deleteBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
+    width: 46,
+    height: 46,
+    borderRadius: 12,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center'

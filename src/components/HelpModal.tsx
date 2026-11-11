@@ -38,30 +38,35 @@ export const HelpModal: React.FC<HelpModalProps> = ({ visible, onClose }) => {
           accessibilityLabel="Close User Guide"
           accessibilityRole="button"
         />
-        <View style={[styles.sheetContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.sheetContainer, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}>
+          {/* Drag Handle */}
+          <View style={styles.dragHandleContainer}>
+            <View style={[styles.dragHandle, { backgroundColor: colors.borderSubtle }]} />
+          </View>
+
           {/* Header */}
-          <View style={[styles.header, { borderBottomColor: colors.border }]}>
+          <View style={[styles.header, { borderBottomColor: colors.borderSubtle }]}>
             <View style={styles.headerTitleRow}>
-              <View style={[styles.helpIconBadge, { backgroundColor: colors.primary }]}>
-                <Ionicons name="help" size={scaleFont(22)} color={colors.primaryText} />
+              <View style={[styles.helpIconBadge, { backgroundColor: colors.primaryLight }]}>
+                <Ionicons name="help" size={scaleFont(20)} color={colors.primary} />
               </View>
-              <View>
-                <Text style={[styles.headerTitle, { color: colors.text, fontSize: scaleFont(20) }]}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.headerTitle, { color: colors.text, fontSize: scaleFont(19) }]}>
                   How to Use GroceryTab PH
                 </Text>
-                <Text style={[styles.headerSub, { color: colors.textSecondary, fontSize: scaleFont(13) }]}>
+                <Text style={[styles.headerSub, { color: colors.textSecondary, fontSize: scaleFont(12) }]}>
                   Quick Guide for Palengke Stall Procurement
                 </Text>
               </View>
             </View>
             <TouchableOpacity
               onPress={handleClose}
-              style={[styles.closeButton, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+              style={[styles.closeButton, { backgroundColor: colors.surfaceHighlight, borderColor: colors.cardBorder }]}
               accessibilityLabel="Close help guide"
               accessibilityRole="button"
               hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             >
-              <Ionicons name="close" size={26} color={colors.text} />
+              <Ionicons name="close" size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
 
@@ -202,23 +207,32 @@ const styles = StyleSheet.create({
   },
   sheetContainer: {
     maxHeight: '90%',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    borderWidth: 2,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1.5,
     borderBottomWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
     elevation: 10
+  },
+  dragHandleContainer: {
+    alignItems: 'center',
+    paddingTop: 10,
+    paddingBottom: 2
+  },
+  dragHandle: {
+    width: 38,
+    height: 4,
+    borderRadius: 2
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 18,
-    paddingVertical: 16,
-    borderBottomWidth: 2
+    paddingVertical: 14,
+    borderBottomWidth: 1.5
   },
   headerTitleRow: {
     flexDirection: 'row',
@@ -241,10 +255,10 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
   closeButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -256,8 +270,8 @@ const styles = StyleSheet.create({
     paddingBottom: 40
   },
   guideCard: {
-    borderRadius: 16,
-    borderWidth: 2,
+    borderRadius: 20,
+    borderWidth: 1.5,
     padding: 16,
     marginBottom: 16
   },

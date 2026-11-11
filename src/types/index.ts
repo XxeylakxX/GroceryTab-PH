@@ -52,13 +52,18 @@ export interface ThemeColors {
   surface: string;
   surfaceHighlight: string;
   card: string;
+  cardInner: string;
   cardBorder: string;
+  borderSubtle: string;
   text: string;
   textSecondary: string;
   textMuted: string;
   primary: string;
+  primaryLight: string;
+  primaryGlow: string;
   primaryText: string;
   accent: string;
+  accentLight: string;
   danger: string;
   dangerSurface: string;
   success: string;
@@ -72,4 +77,7 @@ export interface ThemeColors {
   tabBarBg: string;
   tabBarActive: string;
   tabBarInactive: string;
+  badgeBg: string;
+  badgeText: string;
+  shadowColor: string;
 }

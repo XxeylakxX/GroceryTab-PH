@@ -68,11 +68,11 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
     <View style={[styles.container, { borderBottomColor: colors.receiptBorder }]}>
       {/* Top line: Icon/Picture + Item Name and Subtotal (wraps cleanly on Extra Large) */}
       <View style={styles.topRow}>
-        <View style={[styles.visualBox, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}>
+        <View style={[styles.visualBox, { backgroundColor: colors.cardInner, borderColor: colors.borderSubtle }]}>
           {item.imageUri ? (
             <Image source={{ uri: item.imageUri }} style={styles.itemImage} resizeMode="cover" />
           ) : (
-            <Text style={[styles.itemEmoji, { fontSize: scaleFont(24) }]}>
+            <Text style={[styles.itemEmoji, { fontSize: scaleFont(22) }]}>
               {item.icon || '🛒'}
             </Text>
           )}
@@ -85,12 +85,12 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
             {item.name}
           </Text>
           <Text style={[styles.unitSub, { color: colors.receiptSubtext, fontSize: scaleFont(12) }]}>
-            Unit: {item.unit || 'kg'}
+            /{item.unit || 'kg'} wholesale
           </Text>
         </View>
 
         <View style={styles.subtotalContainer}>
-          <Text style={[styles.subtotalLabel, { color: colors.receiptSubtext, fontSize: scaleFont(11) }]}>
+          <Text style={[styles.subtotalLabel, { color: colors.receiptSubtext, fontSize: scaleFont(10) }]}>
             SUBTOTAL
           </Text>
           <Text style={[styles.subtotalValue, { color: colors.receiptText, fontSize: scaleFont(17) }]}>
@@ -104,18 +104,18 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
         {/* Unit Price badge */}
         <TouchableOpacity
           onPress={handleOpenEdit}
-          style={[styles.unitPriceBadge, { backgroundColor: colors.surfaceHighlight, borderColor: colors.border }]}
+          style={[styles.unitPriceBadge, { backgroundColor: colors.primaryLight, borderColor: colors.primary }]}
           accessibilityLabel={`Price per unit: ${formatPHP(item.unitPrice)}. Tap to edit.`}
           accessibilityRole="button"
         >
-          <Text style={[styles.unitPriceText, { color: colors.text, fontSize: scaleFont(13) }]}>
+          <Text style={[styles.unitPriceText, { color: colors.primary, fontSize: scaleFont(13) }]}>
             @{formatPHP(item.unitPrice)}
           </Text>
-          <Ionicons name="pencil-sharp" size={12} color={colors.textMuted} style={{ marginLeft: 3 }} />
+          <Ionicons name="pencil-sharp" size={12} color={colors.primary} style={{ marginLeft: 4 }} />
         </TouchableOpacity>
 
         {/* Stepper with minimum 48x48dp touch targets */}
-        <View style={[styles.stepperContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+        <View style={[styles.stepperContainer, { borderColor: colors.cardBorder, backgroundColor: colors.surfaceHighlight }]}>
           <TouchableOpacity
             onPress={onDecrement}
             style={[styles.stepperButton, { backgroundColor: colors.card }]}
@@ -123,7 +123,7 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="remove" size={scaleFont(20)} color={colors.text} />
+            <Ionicons name="remove" size={scaleFont(18)} color={colors.text} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -144,7 +144,7 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Ionicons name="add" size={scaleFont(20)} color={colors.text} />
+            <Ionicons name="add" size={scaleFont(18)} color={colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -156,7 +156,7 @@ export const ReceiptItemRow: React.FC<ReceiptItemRowProps> = ({
           accessibilityRole="button"
           hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
         >
-          <Ionicons name="trash-outline" size={scaleFont(20)} color={colors.danger} />
+          <Ionicons name="trash-outline" size={scaleFont(18)} color={colors.danger} />
         </TouchableOpacity>
       </View>
 
@@ -293,13 +293,13 @@ const styles = StyleSheet.create({
     marginBottom: 8
   },
   visualBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
+    width: 46,
+    height: 46,
+    borderRadius: 12,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 8,
+    marginRight: 10,
     overflow: 'hidden'
   },
   itemImage: {
@@ -313,21 +313,22 @@ const styles = StyleSheet.create({
     paddingRight: 6
   },
   itemName: {
-    fontWeight: '700'
+    fontWeight: '800'
   },
   unitSub: {
-    marginTop: 2
+    marginTop: 2,
+    fontWeight: '600'
   },
   subtotalContainer: {
     alignItems: 'flex-end',
     minWidth: 85
   },
   subtotalLabel: {
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5
   },
   subtotalValue: {
-    fontWeight: '800'
+    fontWeight: '900'
   },
   controlRow: {
     flexDirection: 'row',
@@ -340,20 +341,20 @@ const styles = StyleSheet.create({
   unitPriceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 8,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1.5,
     minHeight: 46
   },
   unitPriceText: {
-    fontWeight: '700'
+    fontWeight: '800'
   },
   stepperContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 10,
-    borderWidth: 2,
+    borderRadius: 12,
+    borderWidth: 1.5,
     overflow: 'hidden'
   },
   stepperButton: {
@@ -363,19 +364,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   qtyDisplay: {
-    minWidth: 40,
+    minWidth: 42,
     height: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 4
+    paddingHorizontal: 6
   },
   qtyText: {
-    fontWeight: '800'
+    fontWeight: '900'
   },
   removeButton: {
     width: 46,
     height: 46,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center'
@@ -398,13 +399,13 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     maxHeight: '85%',
-    borderRadius: 20,
-    borderWidth: 2,
+    borderRadius: 24,
+    borderWidth: 1.5,
     padding: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
     elevation: 8
   },
   modalTitle: {
